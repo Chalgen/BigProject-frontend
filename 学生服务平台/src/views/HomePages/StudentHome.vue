@@ -5,6 +5,7 @@
     </div>
 
     <div class="left-postings">
+      <p>test2</p>
       <p v-for="i in 30" :key="i">
         示例内容 {{ i }} - 滚动查看更多...
       </p>

@@ -138,7 +138,7 @@ const fetchLoginInfo = async () => {
 
     try {
     // 发送登录请求（实际项目中添加用户名密码等参数）
-    const response = await axios.get('http://127.0.0.1:4523/m2/7073744-6794634-default/348219496',userdata);
+    const response = await axios.get('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377',userdata);
 
     // 解析后端返回的数据
     const { code, data, msg } = response.data;
@@ -159,9 +159,9 @@ const fetchLoginInfo = async () => {
             globalstore.changeuserid(data.user_id)
             
             // 5秒后自动跳转到首页
-            setTimeout(() => {router.push('/homepage');}, 5000);
+            //setTimeout(() => {router.push('/homepage');}, 5000);
         } else {
-            errorMessage.value = msg || '登录失败，请重试';
+            errorMessage.value = msg || '登录失败，请重试';//msg有值时输出msg e.g.“用户不存在”
         }
     } catch (error) {
     // 处理请求错误

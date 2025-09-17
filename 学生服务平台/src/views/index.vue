@@ -10,7 +10,7 @@
         制作人：
         <br></br>
         <div>
-          <router-link :to="{path:'login'}" class="btn">开始登陆</router-link>
+          <router-link :to="{path:'login2'}" class="btn">开始登陆</router-link>
         </div>
         
     </div>

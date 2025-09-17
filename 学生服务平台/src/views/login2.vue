@@ -1,0 +1,282 @@
+
+
+<template scoped>
+    <div class="container">
+        <div class="login-container">
+            <div class="welcome">欢迎登录</div>
+            <div class="username">
+                <span>账号：</span><input type="text" v-model="username" id="account-input">
+            </div>
+            <div class="password">
+                <span>密码：</span><input type="password" v-model="password" class="password-input">
+            </div>
+            <div class="trylogin-button">
+                <button @click="trylogin()">标准登录（需等待后端返回值确认）</button>
+            </div>
+            <div class="testlogin-button">
+                <button @click="testergotohome()">（已舍弃）开发者测试登录（直接跳转到homepage页）</button>
+            </div>
+            <div class="gototestpage1">
+                <button @click="gototestpage1()">测试页</button>
+            </div>
+
+
+        </div>
+        <div class="login-message">
+            <div class="login-text">登录信息</div>
+            
+            <br></br>
+            <!--<div v-if="isLoading" class="status-indicator">
+                test1
+                <i class="waiting1"></i> 正在验证登录信息...
+            </div>-->
+
+            <div v-if="isLoginSuccess" class="success-message">
+                <div class="success-icon">
+                    <i class="fa fa-check-circle"></i>
+                </div>
+                <h2>登录成功</h2>
+                <div class="user-info">
+                    <p>用户编号：{{ userData.user_id }}</p>
+                    <p>用户类型：{{ userData.user_type === 1 ? '管理员' : '普通用户' }}</p>
+                </div>
+                <div class="testergotohome">
+                    <button @click="testergotohome()">确认登录信息并登录</button>
+                </div>
+                
+            </div>
+
+            <div v-if="errorMessage" class="error-message">
+                test3
+                <i class="error1"></i>
+                <p>{{ errorMessage }}</p>
+                <button @click="fetchLoginInfo" class="retry-button">重试</button>
+            </div>
+        </div>
+        
+    </div>
+
+
+</template>
+
+<script setup>
+    import { useRouter } from 'vue-router';
+    import { useGlobalStore } from '@/store/global'
+    const router = useRouter()
+    import {ref,onMounted,getCurrentInstance} from 'vue';
+    //import "./index.css";
+    import axios from "axios";
+    const { proxy } = getCurrentInstance()
+    const globalStore = useGlobalStore()
+
+    const username = ref();//将account视作结构体名
+    const password = ref();
+
+    const isLoading = ref(true);
+    const isLoginSuccess = ref(false);
+    const userData = ref(null);
+    const errorMessage = ref('');
+    const userType=ref("");
+
+    function trylogin(){
+        isLoading.value = true;
+        errorMessage.value = '';
+        isLoginSuccess.value = false;
+        userData.value = null;
+        const userdata={
+            username:username.value,
+            password:password.value,
+        }
+        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
+        .then(response => {
+            const { code, data, msg } = response.data;
+
+            if (msg === 'success' && code === 200) {
+              isLoginSuccess.value = true;
+              userData.value = data; 
+              globalStore.changeUserId(data.user_id);
+              globalStore.changeUserType(data.user_type);
+              //redirectByUserType(data.user_type);
+            } else {
+                errorMessage.value = msg || '登录失败，请重试';//msg有值时输出msg e.g.“用户不存在”
+            }
+        }).catch(error => {
+            if (error.response) {
+                errorMessage.value = `请求错误: ${error.response.data?.msg || '服务器异常'}`;
+            } else {
+                errorMessage.value = '网络错误，无法连接到服务器';
+            }
+            console.error('登录请求失败:', error);
+        }).finally(isLoading.value = false);
+
+    }
+
+    const goToStudentmain=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转?
+        router.push('/HomePages/StudentHome')
+    }
+    function testergotohome(){
+      const globalStore = useGlobalStore()
+
+        redirectByUserType(globalStore.userType);
+    }
+
+    const goToGeneralAdminHome=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转?
+        router.push('/HomePages/GeneralAdminHome')
+    }
+
+    const goToSuperAdminHome=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转?
+        router.push('/HomePages/SuperAdminHome')
+    }
+
+    function gototestpage1(){
+        jumptestpage1();
+    }
+    const jumptestpage1=()=>{
+        router.push('/testpage1');
+    }
+
+function redirectByUserType(userType) {
+  switch (userType) {
+    case 1:
+      goToGeneralAdminHome();//1 → 普通管理界面
+      break;
+    case 2:
+      goToSuperAdminHome();
+      break;
+    case 3:
+      goToStudentmain();
+      break;
+    default:
+      errorMessage.value = '用户类型异常，请联系管理员';
+      setTimeout(() => router.push('/login2'), 3000);
+  }
+}
+    
+</script>
+
+
+<style scoped>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20px;
+  font-family: "Microsoft YaHei", sans-serif;
+
+  .login-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 25px;
+
+    .welcome {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 25px;
+    }
+
+
+  } 
+
+}
+
+
+
+
+.username, .password {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.username span, .password span {
+  width: 60px;
+  color: #666;
+  font-size: 14px;
+}
+
+input[type="text"], input[type="password"] {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 11px 15px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+  border-color: darkblue;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+button {
+  width: 100%;
+  background-color:darkblue;
+  color:white;
+  border: none;
+  border-radius: 4px;
+  padding: 11px 0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: darkblue;
+}
+
+.testlogin-button button {
+  background-color: #909399;
+}
+.testlogin-button button:hover {
+  background-color: #7d8086;
+}
+
+.login-message {
+  background-color:white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 25px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  color: green;
+}
+
+.success-message {
+  text-align: center;
+  color:green;
+}
+.success-icon {
+  font-size: 40px;
+  margin: 15px 0;
+}
+.user-info {
+  background-color: #f0f9eb;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 15px 0;
+  text-align: left;
+}
+
+.error-message {
+  text-align: center;
+  color: red;
+}
+.retry-button {
+  background-color: red;
+}
+.retry-button:hover {
+  background-color:red;
+}
+</style>
