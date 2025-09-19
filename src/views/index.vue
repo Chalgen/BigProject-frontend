@@ -3,13 +3,6 @@ import { useRouter } from 'vue-router';
     import { useGlobalStore } from '@/store/global'
     const router = useRouter()
     import {ref,onMounted,getCurrentInstance} from 'vue';
-    
-const goTo=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转
-  router.push('/login2')
-}
-function gotologin2(){
-  goTo();
-}
 </script>
 
 <template scoped>
@@ -45,6 +38,6 @@ function gotologin2(){
   border: none;
   border-radius: 4px;
   /*cursor: pointer;*/
-  text-decoration: none; /* 去除链接默认下划线 */
+  text-decoration: none; 
 }
 </style>

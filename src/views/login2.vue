@@ -4,14 +4,12 @@
             <div class="welcome">欢迎登录</div>
             <div class="username">
                 <span>账号：</span>
-                <!-- 补充输入框label关联（额外优化，提升整体可访问性） -->
                 <label for="account-input" class="sr-only">账号</label>
                 <input type="text" v-model="username" id="account-input" aria-describedby="username-hint">
                 <span id="username-hint" class="sr-only">请输入您的登录账号</span>
             </div>
             <div class="password">
                 <span>密码：</span>
-                <!-- 补充输入框label关联 -->
                 <label for="password-input" class="sr-only">密码</label>
                 <input type="password" v-model="password" class="password-input" id="password-input" aria-describedby="password-hint">
                 <span id="password-hint" class="sr-only">请输入您的登录密码</span>
@@ -98,7 +96,6 @@
         axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
             .then(response => {
                 const { code, data, msg } = response.data;
-                // 优化：同时校验code和msg，避免单一条件误判
                 if (code === 200 && msg === 'success') {
                     isLoginSuccess.value = true;
                     userData.value = data;
@@ -121,7 +118,7 @@
     }
 
     const goToStudentmain = () => {
-        router.push('/HomePages/StudentHome')
+        router.push('/HomePages/Student/StudentHome')
     }
     function testergotohome() {
         const globalStore = useGlobalStore()
@@ -129,11 +126,11 @@
     }
 
     const goToGeneralAdminHome = () => {
-        router.push('/HomePages/GeneralAdminHome')
+        router.push('/HomePages/GeneralAdmin/GeneralAdminHome')
     }
 
     const goToSuperAdminHome = () => {
-        router.push('/HomePages/SuperAdminHome')
+        router.push('/HomePages/SuperAdmin/SuperAdminHome')
     }
 
     const gotoRegister = () => {
@@ -162,6 +159,7 @@
 </script>
 
 <style scoped>
+/*ai生成，最后会人力写orz */
 .sr-only {
     position: absolute;
     width: 1px;
@@ -243,7 +241,7 @@ button {
 }
 
 button:hover {
-    background-color: #003366; /* 优化：hover时颜色加深，提升视觉反馈 */
+    background-color: #003366; 
 }
 
 .testlogin-button button {
@@ -288,6 +286,6 @@ button:hover {
 }
 
 .retry-button:hover {
-    background-color: #cc0000; /* 优化：hover时颜色加深 */
+    background-color: #cc0000;
 }
 </style>

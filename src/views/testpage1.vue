@@ -104,12 +104,6 @@ onMounted(() => {
 width:90%;
 height:90%;
 
-  /*padding: 20px;
-  max-width: 600px;
-  margin: 20px auto;
-  border: 1px solid #e21313;
-  border-radius: 8px;
-  background-color: blue;*/
 
   height:100%;
   display: flex;
