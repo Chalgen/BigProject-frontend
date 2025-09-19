@@ -3,10 +3,7 @@
 </script>
 
 <template scoped>
-  <!--<router-view/>-->
-  <router-view></router-view>
-  
-  
+    超级管理员
 </template>
 
 <style scoped>

@@ -11,13 +11,13 @@
                 <span>密码：</span><input type="password" v-model="password" class="password-input">
             </div>
             <div class="trylogin-button">
-                <button @click="trylogin()">标准登录（需等待后端返回值确认）</button>
+                <button @click="trylogin()" id="login2trylogin">登录</button>
             </div>
-            <div class="testlogin-button">
+            <!--<div class="testlogin-button">
                 <button @click="testergotohome()">（已舍弃）开发者测试登录（直接跳转到homepage页）</button>
-            </div>
-            <div class="gototestpage1">
-                <button @click="gototestpage1()">测试页</button>
+            </div>-->
+            <div class="gotoRegister">
+                <button @click="gotoRegister()" id="login2reg">注册</button>
             </div>
 
 
@@ -32,16 +32,23 @@
             </div>-->
 
             <div v-if="isLoginSuccess" class="success-message">
-                <div class="success-icon">
-                    <i class="fa fa-check-circle"></i>
-                </div>
                 <h2>登录成功</h2>
                 <div class="user-info">
+                  <div v-if="userType===1">
                     <p>用户编号：{{ userData.user_id }}</p>
-                    <p>用户类型：{{ userData.user_type === 1 ? '管理员' : '普通用户' }}</p>
+                    <p>普通管理员</p>
+                  </div>
+                  <div v-else-if="userType===2">
+                    <p>用户编号：{{ userData.user_id }}</p>
+                    <p>超级管理员</p>
+                  </div>
+                  <div v-else>
+                    <p>用户编号：{{ userData.user_id }}</p>
+                    <p>学生</p>
+                  </div>
                 </div>
                 <div class="testergotohome">
-                    <button @click="testergotohome()">确认登录信息并登录</button>
+                    <button @click="testergotohome()" id="login2tester">确认登录信息并登录</button>
                 </div>
                 
             </div>
@@ -53,6 +60,7 @@
                 <button @click="fetchLoginInfo" class="retry-button">重试</button>
             </div>
         </div>
+        
         
     </div>
 
@@ -87,13 +95,14 @@
             username:username.value,
             password:password.value,
         }
-        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
+        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
         .then(response => {
             const { code, data, msg } = response.data;
 
             if (msg === 'success' && code === 200) {
               isLoginSuccess.value = true;
               userData.value = data; 
+              userType.value = data.user_type;
               globalStore.changeUserId(data.user_id);
               globalStore.changeUserType(data.user_type);
               //redirectByUserType(data.user_type);
@@ -116,23 +125,23 @@
     }
     function testergotohome(){
       const globalStore = useGlobalStore()
-
-        redirectByUserType(globalStore.userType);
+      redirectByUserType(globalStore.userType);
     }
 
-    const goToGeneralAdminHome=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转?
+    const goToGeneralAdminHome=()=>{
         router.push('/HomePages/GeneralAdminHome')
     }
 
-    const goToSuperAdminHome=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转?
+    const goToSuperAdminHome=()=>{
         router.push('/HomePages/SuperAdminHome')
     }
 
-    function gototestpage1(){
-        jumptestpage1();
-    }
-    const jumptestpage1=()=>{
-        router.push('/testpage1');
+    
+    const gotoRegister = () => {
+      console.log("注册按钮被点击");
+      router.push('/register').catch(err => {
+      console.log("路由跳转失败:", err);
+      });
     }
 
 function redirectByUserType(userType) {
@@ -151,6 +160,8 @@ function redirectByUserType(userType) {
       setTimeout(() => router.push('/login2'), 3000);
   }
 }
+
+
     
 </script>
 
@@ -162,7 +173,7 @@ function redirectByUserType(userType) {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color:lightblue;
   padding: 20px;
   font-family: "Microsoft YaHei", sans-serif;
 

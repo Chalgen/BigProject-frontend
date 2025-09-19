@@ -1,9 +1,9 @@
-<script>
+<script setup>
 
 </script>
 
 <template scoped>
-    超级管理员
+    内容页
 </template>
 
 <style scoped>

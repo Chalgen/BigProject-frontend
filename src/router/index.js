@@ -16,25 +16,52 @@ const routes=[
     },
     {
         path:"/login2",
+        
         component:()=>import("@/views/login2.vue")//原地import进来
     },
     {
         path:"/HomePages/StudentHome",
+        name: 'StudentHome',
         //name:Homepage,用home就崩了？？
         component:()=>import("@/views/HomePages/StudentHome.vue"), 
-        meta: { requiresAuth: true } 
+        //meta: { requiresAuth: true }, 
+        children: [
+          //嵌套更深的路由
+          {
+            path: 'StudentView', 
+            name: 'StudentView',
+            component:()=>import("@/views/HomePages/StudentView.vue"), 
+            //component: () => import('@/views/HomePages/StudentHome/StudentView.vue')
+            //meta: { requiresAuth: true }, 
+          },
+          {
+            path: 'StudentModify', 
+            name: 'StudentModify',
+            component:()=>import("@/views/HomePages/StudentModify.vue"), 
+            //component: () => import('@/views/HomePages/StudentHome/StudentModify.vue')
+            
+            //meta: { requiresAuth: true }, 
+          },
+          {
+            path: 'StudentPost', 
+            name: 'StudentPost',
+            component:()=>import("@/views/HomePages/StudentPost.vue"), 
+            //component: () => import('@/views/HomePages/StudentHome/StudentPost.vue')
+            //meta: { requiresAuth: true }, 
+          }
+        ]
     },
     {
         path:"/HomePages/GeneralAdminHome",
         //name:Homepage,用home就崩了？？
         component:()=>import("@/views/HomePages/GeneralAdminHome.vue"),
-        meta: { requiresAuth: true }
+        //meta: { requiresAuth: true }
     },
     {
         path:"/HomePages/SuperAdminHome",
         //name:Homepage,用home就崩了？？
         component:()=>import("@/views/HomePages/SuperAdminHome.vue"),
-        meta: { requiresAuth: true } 
+        //meta: { requiresAuth: true } 
     },
     {
         path:"/testpage1",
@@ -43,6 +70,10 @@ const routes=[
     {
         path:"/postpage",
         component:()=>import("@/views/postpage.vue")
+    },
+    {
+        path:"/register",
+        component:()=>import("@/views/register.vue")
     },
 ]
 
@@ -60,7 +91,7 @@ router.beforeEach((to, from, next) => {
     if (globalStore.userType) {
       next()
     } else {
-      next('/login') 
+      next('/login2') 
     }
   } else {
     next() 

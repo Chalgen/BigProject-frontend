@@ -1,9 +1,9 @@
-<script>
+<script setup>
 
 </script>
 
 <template scoped>
-    内容页
+    普通管理员
 </template>
 
 <style scoped>
