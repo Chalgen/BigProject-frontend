@@ -20,8 +20,9 @@ function gotologin2(){
         制作人：
         <br></br>
         <div>
-          <!--<router-link :to="{path:'login2'}" class="btn" title="开始登录" aria-label="开始登录">开始登陆</router-link>-->
-          <button @click="gotologin2()">开始登陆</button>
+          <!--<button @click="gotologin2()">开始登陆</button>-->
+          <router-link :to="{path:'login2'}" class="btn" title="开始登录" aria-label="开始登录">开始登陆</router-link>
+          
         </div>
         
     </div>
@@ -36,7 +37,7 @@ function gotologin2(){
   margin: 2rem auto;
   padding: 0 1rem;
 }
-.button {
+.btn {
   display:flex;
   padding: 8px 16px;
   background-color: #42b983;
