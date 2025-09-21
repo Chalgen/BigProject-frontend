@@ -81,7 +81,7 @@ function post(){
     },
     user_id : global.user_id,
   }
-  axios.post('http://127.0.0.1:4523/m1/7074224-6795300-default/api/student/post',postingdata)
+  axios.post('http://127.0.0.1:4523/m1/7120556-6843396-default/api/feedback',postingdata)
 }
 
 

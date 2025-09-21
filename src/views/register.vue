@@ -7,6 +7,9 @@
             <div class="username">
                 <span>注册账号：</span><input type="text" v-model="username" id="account-input">
             </div>
+            <div class="email">
+                <span>注册邮箱：</span><input type="text" v-model="email" class="email-input">
+            </div>
             <div class="password">
                 <span>注册密码：</span><input type="password" v-model="password" class="password-input">
             </div>
@@ -142,7 +145,7 @@ function trylogin(){
   margin-bottom: 25px;
 }
 
-.username, .password, .confirm-password {
+.username, .password, .confirm-password .email{
   display: flex;
   align-items: center;
   margin-bottom: 20px;

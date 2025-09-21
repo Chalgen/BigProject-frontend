@@ -15,7 +15,8 @@
 
     <RouterLink :to="{ name: 'StudentModify' }">修改个人信息</RouterLink>
     <RouterLink :to="{ name: 'StudentPost' }">反馈校园事务</RouterLink>
-    <RouterLink :to="{ name: 'StudentView' }">查看我的历史反馈</RouterLink>      
+    <RouterLink :to="{ name: 'StudentView' }">查看我的历史反馈</RouterLink>
+    0      
 
     </div>
 
