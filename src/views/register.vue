@@ -8,7 +8,7 @@
                 <span>注册账号：</span><input type="text" v-model="username" id="account-input">
             </div>
             <div class="email">
-                <span>注册邮箱：</span><input type="text" v-model="email" class="email-input">
+                <span>注册邮箱：</span><input type="text" v-model="email" id="email-input">
             </div>
             <div class="password">
                 <span>注册密码：</span><input type="password" v-model="password" class="password-input">
@@ -59,6 +59,7 @@ import { useRouter } from 'vue-router';
 
     const username = ref();//将account视作结构体名
     const password = ref();
+    const email = ref();
     const confirmpassword=ref();
 
     const isLoading = ref(true);
@@ -78,6 +79,7 @@ function tryRegister(){
     const userdata={
         username:username.value,
         password:password.value,
+        email:email.value,
     }
     axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
         .then(response => {
@@ -107,7 +109,7 @@ function tryRegister(){
 }
 
 const goToStudentmain=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转?
-    router.push('/HomePages/StudentHome')
+    router.push('/HomePages/Student/StudentHome')
 }
 function trylogin(){
     goToStudentmain();
@@ -145,13 +147,13 @@ function trylogin(){
   margin-bottom: 25px;
 }
 
-.username, .password, .confirm-password .email{
+.username, .password, .confirm-password, .email {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.username span, .password span, .confirm-password span {
+.username span, .password span, .confirm-password span, .email span{
   width: 100px;
   color: #666;
   font-size: 14px;

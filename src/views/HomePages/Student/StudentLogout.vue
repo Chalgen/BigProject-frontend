@@ -1,28 +1,21 @@
 <template scoped>
-  修改个人信息
   <div class="container">
-    <div class="rename">
-      <span>修改昵称：</span>
-    </div>
-    <div class="repassword">
-      <span>修改密码：</span>
-      <span>重复修改后的密码：</span>
-    </div>
-    <div class="rehead">
-      <span>修改头像：</span>
-    </div>
+    <button @click="goToLogin()">点击登出</button>
   </div>
 </template>
 
 <script setup>
 //import()
-import { useRouter } from 'vue-router';
+import { createRouter,useRouter } from 'vue-router';
     import { useGlobalStore } from '@/store/global'
     const router = useRouter()
     import { ref, onMounted, getCurrentInstance } from 'vue';
     import axios from "axios";
     const { proxy } = getCurrentInstance()
     const globalStore = useGlobalStore()
+    const goToLogin = () => {
+        router.push({ name: 'login' })
+    }
 </script>
 
 <stlye scoped>

@@ -12,12 +12,8 @@ const routes=[
     },
     {
         path:"/login",
+        name: 'login',
         component:()=>import("@/views/login.vue")//原地import进来
-    },
-    {
-        path:"/login2",
-        
-        component:()=>import("@/views/login2.vue")//原地import进来
     },
 
 
@@ -46,7 +42,13 @@ const routes=[
             name: 'StudentPost',
             component:()=>import("@/views/HomePages/Student/StudentPost.vue"), 
             //meta: { requiresAuth: true }, 
-          }
+          },
+          {
+            path: 'StudentLogout', 
+            name: 'StudentLogout',
+            component:()=>import("@/views/HomePages/Student/StudentLogout.vue"), 
+            //meta: { requiresAuth: true }, 
+          },
         ]
     },
 
@@ -137,7 +139,7 @@ router.beforeEach((to, from, next) => {
     if (globalStore.userType) {
       next()
     } else {
-      next('/login2') 
+      next('/login') 
     }
   } else {
     next() 

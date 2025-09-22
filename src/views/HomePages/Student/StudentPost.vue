@@ -1,6 +1,6 @@
 <template scoped>
   <div class="container">
-    <h1>这是发帖页</h1>
+    <h1>反馈校园事务</h1>
     <input 
       v-model="title" 
       placeholder="标题" 
@@ -12,24 +12,31 @@
       class="postcontent"
     ></textarea>
     <div class="post-settings">
-      <button class="IsAnonbutton" @click="CheckAnon()">{{ IsAnon?"匿名":"实名" }}</button>
-      <button class="IsUrgentbutton" @click="CheckUrgent()">{{ IsUrgent?"紧急":"不紧急" }}</button>
-      <button class="select-tag" @click="post()">点击选择标签</button>
+      <button class="IsAnonbutton" @click="CheckAnon()">{{ IsAnon?"是否匿名：匿名":"是否匿名：实名" }}</button>
+      <button class="IsUrgentbutton" @click="CheckUrgent()">{{ IsUrgent?"是否紧急：紧急":"是否紧急：不紧急" }}</button>
+      <button class="select-tag" @click="showModal = true">点击选择标签</button>
     </div>
     <div class="post-div">
       <button class="postbutton" @click="post()">发帖</button>
     </div>
-    <div class="tag-selector" v-if="isSelectorOpen":class="{'slide-down': isSelectorOpen}">
-      <div class="tag-list">
-        <div 
-          v-for="tag in filteredTags" 
-          :key="tag.id"
-          class="tag-item"
-          :class="{'selected':tag.id===selectedTagId}"
-          @click="selectTag(tag)"
-        >
-          {{ tag.name }}
+
+
+    <div v-if="showModal" class="modal">
+      <div class="modal-box">
+        <h4>选择标签<button @click="showModal = false"></button></h4>
+        <!-- 标签列表：点击切换选择 -->
+        <div class="tag-list">
+          <button 
+            v-for="t in allTags" 
+            :key="t"
+            :disabled="selected.length>=1 && !selected.includes(t)"
+            @click="toggleTag(t)"
+            :class="{active:selected.includes(t) }"
+          >
+            {{ t }}
+          </button>
         </div>
+        <button @click="showModal = false" class="confirm-btn">确定</button>
       </div>
     </div>
     
@@ -71,19 +78,33 @@ function jumphomepage(){
 
 const title=ref();
 const content=ref();
-const user_id=ref();
+const user_id=global.userId;
 
 function post(){
   const postingdata={
     content : {
       title:title.value,
       text:content.value,
+      tags:selected.value,
+      anonymity:IsAnon.value,
+      Urgent:IsUrgent.value,
     },
-    user_id : global.user_id,
+    user_id : user_id,
+    test_selected_lenth: selected.lenth
   }
-  axios.post('http://127.0.0.1:4523/m1/7120556-6843396-default/api/feedback',postingdata)
+  axios.post('http://127.0.0.1:4523/m1/7074224-6795300-default/api/student/post',postingdata)
 }
 
+const showModal = ref(false) // 控制弹窗显示
+const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题',"校园环境问题","校园安全问题","意见与建议","其他"]) // 所有可选标签
+const selected = ref([]) // 已选标签
+
+// 切换标签选择：点击标签添加/移除
+const toggleTag = (tag) => {
+  const idx = selected.value.indexOf(tag)
+  
+  idx > -1 ? selected.value.splice(idx, 1) : selected.value.push(tag)
+}
 
 
 
@@ -92,7 +113,7 @@ function post(){
 </script>
 
 <style scoped>
-/*ai生成，最后会人力写orz */
+/*部分ai生成，最后会人力写orz */
 .container {
   max-width: 800px;
   margin: 2rem auto;
@@ -154,14 +175,33 @@ h1 {
   text-align: right;
 }
 
+.post-settings{
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+}
+
+.IsAnonbutton,.IsUrgentbutton,.select-tag {
+  background-color:green;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 .postbutton {
+  display: flex;
+  flex-direction: row;
   background-color: #42b983;
   color: white;
   border: none;
-  padding: 0.8rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
+  padding: 0.9rem 13rem;
+  border-radius: 10px;
+  font-size: 2rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -189,5 +229,48 @@ h1 {
     width: 100%;
     padding: 0.9rem;
   }
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+}
+.modal-box h4 { margin: 0 0 15px; display: flex; justify-content: space-between; align-items: center; }
+.modal-box button { border: none; cursor: pointer; }
+
+/* 标签按钮样式 */
+.tag-list { gap: 8px; display: flex; flex-wrap: wrap; margin-bottom: 15px; }
+.tag-list button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+}
+.tag-list button.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.confirm-btn {
+  width: 100%;
+  padding: 8px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 4px;
 }
 </style>

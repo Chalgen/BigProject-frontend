@@ -10,13 +10,13 @@
 <template scoped>
   <div class="container">
     <h2 class="title">学生服务平台[学生端]</h2>
-
+    <div class="user-message">用户信息（头像昵称之类的）（放右上角）</div>
     <div class="navigate">
 
     <RouterLink :to="{ name: 'StudentModify' }">修改个人信息</RouterLink>
     <RouterLink :to="{ name: 'StudentPost' }">反馈校园事务</RouterLink>
     <RouterLink :to="{ name: 'StudentView' }">查看我的历史反馈</RouterLink>
-    0      
+    <RouterLink :to="{ name: 'StudentLogout' }">登出</RouterLink>      
 
     </div>
 

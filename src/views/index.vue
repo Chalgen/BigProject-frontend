@@ -14,7 +14,7 @@ import { useRouter } from 'vue-router';
         <br></br>
         <div>
           <!--<button @click="gotologin2()">开始登陆</button>-->
-          <router-link :to="{path:'login2'}" class="btn" title="开始登录" aria-label="开始登录">开始登陆</router-link>
+          <router-link :to="{path:'login'}" class="btn" title="开始登录" aria-label="开始登录">开始登陆</router-link>
           
         </div>
         
