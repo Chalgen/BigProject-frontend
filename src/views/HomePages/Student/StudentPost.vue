@@ -84,7 +84,7 @@ function post(){
   const postingdata={
     content : {
       title:title.value,
-      text:content.value,
+      content:content.value,
       tags:selected.value,
       anonymity:IsAnon.value,
       Urgent:IsUrgent.value,

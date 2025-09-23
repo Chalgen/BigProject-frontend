@@ -13,11 +13,7 @@ function gotologin2(){
 </script>
 
 <template scoped>
-  <!--<router-view/><button @click="gotologin2()" id="AppLogin" aria-label="登录">开始登陆</button><router-view></router-view>-->
   <router-view></router-view>
-  
-  
-  
 </template>
 
 <style scoped>

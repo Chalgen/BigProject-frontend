@@ -15,16 +15,24 @@
             v-for="t in allTags" 
             :key="t"
             @click="toggleTag(t)"
-            :class="{active:selected.includes(t) }"
-          >
+            :class="{active:selected.includes(t) }">
             {{ t }}
           </button>
+          <button @click="selectall()" :class="{active:isChooseAll }">全选</button>
         </div>
         <button @click="showModal = false" class="confirm-btn">确定</button>
       </div>
     </div>
 
-    
+    <div class="items">
+      <!--<div v-for="post in posts":key="post.id" class="item">
+        <h3>{{ post.content }}</h3>
+      </div>-->
+      <div v-for="item in filteredItems" :key="item.id" class="item">
+        <h3>{{ item.title }}</h3>
+        <button @click="openContent(item.id)">进入反馈详情</button>
+      </div>
+    </div>
     
   </div>
 </template>
@@ -41,65 +49,26 @@ const globalStore = useGlobalStore()
 
 const showModal = ref(false)
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题',"校园环境问题","校园安全问题","意见与建议","其他"])
+const noTags = ref('');
 const selected = ref([])
 const activeTag = ref('');
-//const posts=ref([])
-const posts=ref("")
+
+const posts=ref([])
+const isChooseAll=ref(false);
 
 const isLoading = ref(true);
 const isLoginSuccess = ref(false);
 const userData = ref(null);
 const errorMessage = ref('');
-/*{data:{
-{id:2,text:"测试内容1,title:"测试标题1",tag:"宿舍设施报修"}
-{id:2,text:"测试内容2,title:"测试标题2",tag:"宿舍设施报修"}
-{id:2,text:"测试内容3,title:"测试标题3",tag:"宿舍设施报修"}
-{id:2,text:"测试内容4,title:"测试标题4",tag:"教学设施报修"}
-{id:2,text:"测试内容5,title:"测试标题5",tag:"宿舍设施报修"}
-{id:2,text:"测试内容6,title:"测试标题6",tag:"公共设施报修"}
-{id:2,text:"测试内容7,title:"测试标题7",tag:"公共设施报修"}
-}} 
 
-{
-  "code": 200,
-  "message": "获取帖子列表（分页）成功",
-  "data": {
-    "pagination": {       // 分页元信息（核心，前端用于渲染分页控件）
-      "total": 128,       // 数据库中帖子总条数
-      "page": 1,          // 当前请求的页码
-      "pageSize": 10,     // 当前请求的每页条数
-      "totalPages": 13    // 总页数（total / pageSize 向上取整）
-    },
-    "posts": [            // 当前页的帖子列表（与基础格式一致）
-      {
-        "id": 1,
-        "title": "前端Axios请求后端的最佳实践",
-        "text": "在实际项目中，Axios.get()需要注意请求头、超时设置...",
-        "author": {
-          "userId": 101,
-          "username": "前端开发君",
-        },
-        "tag": "公共设施报修",
-      },
-      {
-        "id":2,"text":"测试内容7,"title":"测试标题7","tag":"公共设施报修"
-      },
-      {
-        "id":3,"text":"测试内容8,"title":"测试标题8","tag":"宿舍设施报修"
-      },
-      {
-        "id":4,"text":"测试内容9,"title":"测试标题9","tag":"公共设施报修"
-      },
-    ]
-  }
-}*/
 const fetchPosts = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:4523/m1/7131475-6854516-default/api/posts',
+    const response = await axios.get('http://127.0.0.1:4523/m1/7131475-6854516-default/api/posts?apifoxApiId=354486410'/*,
     {params: {
       id:globalStore.userId
-    }});
-    posts.value = response.data.data || response.data;
+    }}*/);
+    posts.value = response.data.data.post_list
+    console.log(posts.value)
     error.value = null;
   } catch (err) {
     error.value = err.response?.data?.message || '网络错误，请稍后再试';
@@ -115,178 +84,228 @@ onMounted(() => {
   fetchPosts();
 });
 
-const toggleTag = (tag) => {
+const toggleTag = (tag) => {//维护slected{tags}数组
   const idx = selected.value.indexOf(tag) 
-  idx>-1 ? selected.value.splice(idx, 1) : selected.value.push(tag)
+  if(idx>-1){
+    selected.value.splice(idx, 1)
+    isChooseAll=false;
+  }else{
+    selected.value.push(tag)
+    if(selected.value===allTags.value) isChooseAll=true;
+  }
+  console.log(filteredItems)
+}
+function selectall(){
+  if(!isChooseAll.value){
+    selected.value = [...allTags.value];
+    isChooseAll,value=true;
+  }else{
+    selected.value = []
+    isChooseAll.value=false;
+  }
+  //selected.value=allTags.value不行：selected会直接和allTag共享内存地址
+  //console.log(selected)
+  //axios.post("http://127.0.0.1:8080/api/logintest",allTags)
 }
 
 const filteredItems = computed(() => {
-  if (activeTag.value === '') {
+  /*if (activeTag.value === '') {
     return posts.value;
-  }
-  return posts.value.filter(item => item.tag.includes(activeTag.value));
+  }*/
+  
+  return posts.value.filter(item=>selected.value.includes(item.tag));
+  
 });
 </script>
 
 <style scoped>
-
+/*部分ai生成，最后会人力写orz */
 .container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
 }
 
 h1 {
   color: #2c3e50;
-  margin-bottom: 1.5rem;
+  margin-bottom: 30px;
   font-weight: 600;
-  font-size: 1.8rem;
-  text-align: center;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
 }
 
-.posttitle {
-  width: 100%;
-  padding: 0.9rem 1.2rem;
-  margin-bottom: 1.2rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-.posttitle:focus {
-  outline: none;
-  border-color: #42b983;
-  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
-}
-
-.postcontent {
-  width: 100%;
-  padding: 1.2rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  min-height: 600px;
-  resize: vertical;
-  font-size: 1rem;
-  line-height: 1.6;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-.postcontent:focus {
-  outline: none;
-  border-color: #42b983;
-  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
-}
-
-.postdiv {
-  text-align: right;
-}
-
-.post-settings{
+.post-settings {
+  margin-bottom: 20px;
   display: flex;
-  flex-direction: row;
-  gap: 30px;
+  justify-content: flex-end;
 }
 
-.IsAnonbutton,.IsUrgentbutton,.select-tag {
-  background-color:green;
+.select-tag {
+  background-color: #3498db;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-size: 1rem;
-  font-weight: 300;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-.postbutton {
+  font-size: 14px;
+  transition: background-color 0.3s ease;
   display: flex;
-  flex-direction: row;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  padding: 0.9rem 13rem;
-  border-radius: 10px;
-  font-size: 2rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  align-items: center;
+  gap: 6px;
 }
 
-.postbutton:hover {
-  background-color: #359e75;
-  transform: translateY(-2px);
-}
-
-.postbutton:active {
-  transform: translateY(0);
-}
-
-@media (max-width: 768px) {
-  .container {
-    margin: 1rem;
-    padding: 1.5rem;
-  }
-  
-  h1 {
-    font-size: 1.5rem;
-  }
-  
-  .postbutton {
-    width: 100%;
-    padding: 0.9rem;
-  }
+.select-tag:hover {
+  background-color: #2980b9;
 }
 
 .modal {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
+
 .modal-box {
-  background: #fff;
-  padding: 20px;
+  background-color: white;
+  padding: 25px;
   border-radius: 8px;
   width: 90%;
-  max-width: 400px;
+  max-width: 600px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
 }
-.modal-box h4 { margin: 0 0 15px; display: flex; justify-content: space-between; align-items: center; }
-.modal-box button { border: none; cursor: pointer; }
 
-/* 标签按钮样式 */
-.tag-list { gap: 8px; display: flex; flex-wrap: wrap; margin-bottom: 15px; }
+.modal-box h4 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-box h4 button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: color 0.2s;
+}
+
+.modal-box h4 button:hover {
+  color: #e74c3c;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+
 .tag-list button {
   padding: 6px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
+  border: 1px solid #bdc3c7;
+  border-radius: 20px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
+
 .tag-list button.active {
-  background: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
+  background-color: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.tag-list button:hover:not(.active) {
+  border-color: #3498db;
+  color: #3498db;
 }
 
 .confirm-btn {
-  width: 100%;
-  padding: 8px;
-  background: #2563eb;
-  color: #fff;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
   border-radius: 4px;
-}  
+  cursor: pointer;
+  font-size: 16px;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.confirm-btn:hover {
+  background-color: #2980b9;
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.item h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* 加载状态样式 */
+.loading {
+  text-align: center;
+  padding: 50px 0;
+  color: #7f8c8d;
+}
+
+/* 错误提示样式 */
+.error {
+  color: #e74c3c;
+  padding: 10px;
+  background-color: #fadbd8;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .items {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-box {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  .container {
+    padding: 10px;
+  }
+}
 </style>
