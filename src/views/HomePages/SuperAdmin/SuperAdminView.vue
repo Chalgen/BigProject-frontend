@@ -2,7 +2,7 @@
   超级管理员预览页
 </template>
 
-<script setup lang="ts" name="view">
+<script setup>
 //import()
 import { useRouter } from 'vue-router';
     import { useGlobalStore } from '@/store/global'

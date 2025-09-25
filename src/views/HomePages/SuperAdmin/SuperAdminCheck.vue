@@ -2,7 +2,7 @@
   超级管理员审核管理员处理情况、确认垃圾信息、自查自己的处理记录
 </template>
 
-<script setup lang="ts" name="view">
+<script setup>
 //import()
 import { useRouter } from 'vue-router';
     import { useGlobalStore } from '@/store/global'

@@ -7,6 +7,9 @@
             <div class="username">
                 <span>注册账号：</span><input type="text" v-model="username" id="account-input">
             </div>
+            <div class="nickname">
+                <span>注册昵称：</span><input type="text" v-model="nickname" id="account-input">
+            </div>
             <div class="email">
                 <span>注册邮箱：</span><input type="text" v-model="email" id="email-input">
             </div>
@@ -14,11 +17,14 @@
                 <span>注册密码：</span><input type="password" v-model="password" class="password-input">
             </div>
             <div class="confirm-password">
-                <span>确认注册密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
+                <span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
             </div>
 
             <div class="tryregister-button">
                 <button @click="tryRegister()">注册用户</button>
+            </div>
+            <div class="tryregister-button">
+                <button @click="returnLogin()">返回登录</button>
             </div>
         </div>
 
@@ -60,6 +66,7 @@ import { useRouter } from 'vue-router';
     const username = ref();//将account视作结构体名
     const password = ref();
     const email = ref();
+    const nickname=ref()
     const confirmpassword=ref();
 
     const isLoading = ref(true);
@@ -68,7 +75,9 @@ import { useRouter } from 'vue-router';
     const errorMessage = ref('');
     const userType=ref("");
     const RegisterStatus=ref(0);
-
+const returnLogin = () => {
+        router.push('/login')
+    }
 function tryRegister(){
     if(password.value!=confirmpassword.value){
 
@@ -78,6 +87,7 @@ function tryRegister(){
     }
     const userdata={
         username:username.value,
+        nickname:nickname.value,
         password:password.value,
         email:email.value,
     }
@@ -147,13 +157,13 @@ function trylogin(){
   margin-bottom: 25px;
 }
 
-.username, .password, .confirm-password, .email {
+.username, .password, .confirm-password, .email, .nickname {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.username span, .password span, .confirm-password span, .email span{
+.username span, .password span, .confirm-password span, .email span, .nickname span{
   width: 100px;
   color: #666;
   font-size: 14px;

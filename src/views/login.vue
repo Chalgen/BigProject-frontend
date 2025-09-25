@@ -94,7 +94,8 @@
             isLoading.value = false;
             return;
         }
-        axios.post('http://127.0.0.1:4523/m2/7159664-6883727-default/355146962?apifoxApiId=355146962', userdata)
+        //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
+        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
             .then(response => {
                 const { code, data, msg } = response.data;
                 if (code === 200 && msg === 'success') {
@@ -119,14 +120,15 @@
             });
     }
 
-    const goToStudentmain = () => {
-        router.push('/HomePages/Student/StudentHome')
-    }
+    
     function testergotohome() {
         const globalStore = useGlobalStore()
         redirectByUserType(globalStore.userType);
     }
 
+    const goToStudentmain = () => {
+        router.push('/HomePages/Student/StudentHome')
+    }
     const goToGeneralAdminHome = () => {
         router.push('/HomePages/GeneralAdmin/GeneralAdminHome')
     }

@@ -4,9 +4,9 @@
 
     <div class="navigate">
 
-    <RouterLink :to="{ name: 'StudentModify' }">修改个人信息</RouterLink>
-    <RouterLink :to="{ name: 'StudentPost' }">查看我的历史反馈</RouterLink>
-    <RouterLink :to="{ name: 'StudentView' }">查看我的反馈</RouterLink>
+    <RouterLink :to="{ name: 'GeneralAdminModify' }">修改个人信息</RouterLink>
+    <RouterLink :to="{ name: 'GeneralAdminCheck' }">查看我解决的反馈</RouterLink>
+    <RouterLink :to="{ name: 'GeneralAdminView' }">查看所有反馈</RouterLink>
     
       
 

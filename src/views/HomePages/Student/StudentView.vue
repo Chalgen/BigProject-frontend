@@ -29,11 +29,24 @@
         <h3>{{ post.content }}</h3>
       </div>-->
       <div v-for="item in filteredItems" :key="item.id" class="item">
-        <h3>{{ item.title }}</h3>
+        <h2>{{ item.title }}</h2>
+        <h6>{{ item.tag }} {{ item.isSolved?"已解决":"未解决" }}</h6><!--后续可以通过整个页面可视化信息显示解决状态-->
         <button @click="openContent(item.id)">进入反馈详情</button>
+
       </div>
     </div>
-    
+    <div v-if="openModal==true" class="content-container">
+      <div class="title-popup">
+        <h1>{{ showPost.title }}</h1>
+        <h6>{{ item.tag }} {{ item.isSolved?"已解决":"未解决" }}</h6><!--后续可以通过整个页面可视化信息显示解决状态-->
+      </div>
+      <div class="content-popup">
+        {{ showPost.content }}
+      </div>
+      <div class="close-popup">
+        <button @click="openModal=false">关闭反馈</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -47,7 +60,9 @@ import axios from "axios";
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
 
+const openModal = ref(false)
 const showModal = ref(false)
+
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题',"校园环境问题","校园安全问题","意见与建议","其他"])
 const noTags = ref('');
 const selected = ref([])
@@ -55,6 +70,7 @@ const activeTag = ref('');
 
 const posts=ref([])
 const isChooseAll=ref(false);
+const showPost = ref({ title: '', content: '' })
 
 const isLoading = ref(true);
 const isLoginSuccess = ref(false);
@@ -65,7 +81,7 @@ const fetchPosts = async () => {
   try {
     const response = await axios.get('http://127.0.0.1:4523/m1/7131475-6854516-default/api/posts?apifoxApiId=354486410'/*,
     {params: {
-      id:globalStore.userId
+      user_id:globalStore.userId
     }}*/);
     posts.value = response.data.data.post_list
     console.log(posts.value)
@@ -109,57 +125,71 @@ function selectall(){
 }
 
 const filteredItems = computed(() => {
-  /*if (activeTag.value === '') {
-    return posts.value;
-  }*/
-  
   return posts.value.filter(item=>selected.value.includes(item.tag));
-  
 });
+const showpost = computed(() => {
+  return posts.value.filter(item=>selected.value.includes(item.tag));
+});
+function openContent(postid){
+  showPost.value=posts.value.find(item=>item.id==postid);
+  openModal.value=true;
+}
 </script>
 
 <style scoped>
 /*部分ai生成，最后会人力写orz */
+/* 全局样式重置与基础设置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Microsoft YaHei", Arial, sans-serif;
+}
+
+body {
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* 容器样式：居中布局 + 间距控制 */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
+  padding: 30px 20px;
 }
 
-h1 {
+/* 标题样式：突出主题 + 底部分隔 */
+.container h1 {
+  font-size: 24px;
+  font-weight: 600;
   color: #2c3e50;
   margin-bottom: 30px;
-  font-weight: 600;
-  border-bottom: 2px solid #3498db;
   padding-bottom: 10px;
+  border-bottom: 1px solid #eaecef;
 }
 
+/* 标签选择按钮区域样式 */
 .post-settings {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: flex-end;
+  margin-bottom: 25px;
 }
 
 .select-tag {
-  background-color: #3498db;
-  color: white;
-  border: none;
   padding: 8px 16px;
+  background-color: #42b983;
+  color: #fff;
+  border: none;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 14px;
+  cursor: pointer;
   transition: background-color 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .select-tag:hover {
-  background-color: #2980b9;
+  background-color: #359469;
 }
 
+/* 模态框样式：遮罩层 + 居中弹窗 */
 .modal {
   position: fixed;
   top: 0;
@@ -174,138 +204,241 @@ h1 {
 }
 
 .modal-box {
-  background-color: white;
-  padding: 25px;
+  background-color: #fff;
+  width: 100%;
+  max-width: 500px;
   border-radius: 8px;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
 }
 
+/* 模态框标题样式 */
 .modal-box h4 {
-  margin-top: 0;
-  color: #2c3e50;
   font-size: 18px;
+  color: #2c3e50;
+  margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+/* 模态框关闭按钮（默认按钮美化） */
 .modal-box h4 button {
-  background: none;
+  background: transparent;
   border: none;
   font-size: 20px;
+  color: #999;
   cursor: pointer;
-  color: #7f8c8d;
-  transition: color 0.2s;
+  padding: 5px;
+  transition: color 0.3s ease;
 }
 
 .modal-box h4 button:hover {
-  color: #e74c3c;
+  color: #333;
 }
 
+/* 标签列表样式：流式布局 + 间距控制 */
 .tag-list {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin: 20px 0;
+  margin-bottom: 25px;
 }
 
+/* 标签按钮样式：未选中/选中状态区分 */
 .tag-list button {
-  padding: 6px 12px;
-  border: 1px solid #bdc3c7;
+  padding: 6px 14px;
+  border: 1px solid #ddd;
   border-radius: 20px;
-  background-color: white;
-  cursor: pointer;
+  background-color: #fff;
   font-size: 14px;
-  transition: all 0.2s ease;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
+/* 选中的标签样式 */
 .tag-list button.active {
-  background-color: #3498db;
-  color: white;
-  border-color: #3498db;
+  background-color: #42b983;
+  color: #fff;
+  border-color: #42b983;
 }
 
 .tag-list button:hover:not(.active) {
-  border-color: #3498db;
-  color: #3498db;
+  border-color: #42b983;
+  color: #42b983;
 }
 
+/* 模态框确定按钮样式 */
 .confirm-btn {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
   width: 100%;
+  padding: 10px 0;
+  background-color: #42b983;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .confirm-btn:hover {
-  background-color: #2980b9;
+  background-color: #359469;
 }
 
+/* 反馈列表容器样式 */
 .items {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  margin-top: 30px;
+  margin-bottom: 40px;
 }
 
+/* 单个反馈卡片样式 */
 .item {
-  background-color: white;
+  background-color: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
 }
 
 .item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
+/* 反馈标题样式 */
 .item h3 {
-  margin-top: 0;
+  font-size: 16px;
   color: #2c3e50;
-  font-size: 18px;
-  font-weight: 600;
+  margin-bottom: 15px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* 加载状态样式 */
-.loading {
+/* 反馈详情按钮样式 */
+.item button {
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid #42b983;
+  color: #42b983;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.item button:hover {
+  background-color: #42b983;
+  color: #fff;
+}
+
+.content-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  max-width: 600px;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  z-index: 1000; /* 确保在最上层 */
+
+  border: 4px solid black;
+  border-radius: 8px;
+  padding: 16px;
+
+  /* 实现垂直排列 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 各部分之间的间距 */
+}
+
+/* 标题样式 */
+.title-popup {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color:black;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* 内容区域样式 */
+.content-popup {
+  font-size: 1rem;
+  line-height: 1.6;
+  color:black;
+  flex: 1; /* 占满剩余空间 */
+  overflow-y: auto; /* 内容过长时可滚动 */
+  max-height: 40vh; /* 限制最大高度 */
+}
+
+/* 关闭按钮区域 */
+.close-popup {
+  display: flex;
+  justify-content: flex-end; /* 按钮靠右 */
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+/* 按钮样式 */
+.close-popup button {
+  padding: 8px 16px;
+  background: #3498db;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.close-popup button:hover {
+  background: #2980b9;
+}
+
+/* 可以添加一个半透明背景遮罩 */
+.content-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color:aliceblue;
+  border: 4px black;
+  z-index: -1; /* 放在弹窗后面 */
+}
+
+/* 加载状态与空数据提示样式（补充场景） */
+.loading, .empty-tip {
   text-align: center;
   padding: 50px 0;
-  color: #7f8c8d;
+  color: #999;
+  font-size: 14px;
 }
 
-/* 错误提示样式 */
-.error {
-  color: #e74c3c;
-  padding: 10px;
-  background-color: #fadbd8;
-  border-radius: 4px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-/* 响应式调整 */
+/* 响应式适配：小屏幕调整布局 */
 @media (max-width: 768px) {
   .items {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-box {
-    width: 95%;
-    padding: 15px;
+    max-width: 90%;
+    padding: 20px;
   }
-  
+
   .container {
-    padding: 10px;
+    padding: 20px 15px;
+  }
+
+  .container h1 {
+    font-size: 22px;
+    margin-bottom: 25px;
   }
 }
 </style>
