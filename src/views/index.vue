@@ -7,12 +7,11 @@ import { useRouter } from 'vue-router';
 
 <template scoped>
     
-    <div class="oricon" style="font-size: 40px;font-family: kaiti;">
-        欢迎使用学生服务平台
+    <div class="oricon" style="font-family: kaiti;">
+        <div style="font-size: 50px;">欢迎使用学生服务平台</div>
         <br></br>
-        制作人：
         <br></br>
-        <div>
+        <div style="margin-top: 6cm;">
           <!--<button @click="gotologin2()">开始登陆</button>-->
           <router-link :to="{path:'login'}" class="btn" title="开始登录" aria-label="开始登录">开始登陆</router-link>
           
@@ -24,11 +23,18 @@ import { useRouter } from 'vue-router';
 <style scoped>
 .oricon{
   display:flex;
-  align-items:center;
-  justify-content:center;
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  height: 100%;
+  width: 100%;
+  background-color: aqua;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: cover; /* 覆盖容器，可能裁剪边缘但保持比例 */
+    object-position: center;
 }
 .btn {
   display:flex;
