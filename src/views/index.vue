@@ -7,7 +7,7 @@ import { useRouter } from 'vue-router';
 
 <template scoped>
     
-    <div class="oricon">
+    <div class="oricon" style="font-size: 40px;font-family: kaiti;">
         欢迎使用学生服务平台
         <br></br>
         制作人：
