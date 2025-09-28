@@ -6,7 +6,7 @@
 
     <RouterLink :to="{ name: 'GeneralAdminModify' }">修改个人信息</RouterLink>
     <RouterLink :to="{ name: 'GeneralAdminCheck' }">查看我解决的反馈</RouterLink>
-    <RouterLink :to="{ name: 'GeneralAdminView' }">查看所有反馈</RouterLink>
+    <RouterLink :to="{ name: 'GeneralAdminView' }">浏览所有反馈</RouterLink>
     
       
 

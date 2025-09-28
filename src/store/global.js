@@ -4,7 +4,9 @@ import { defineStore } from 'pinia'  // 从 pinia 导入 defineStore
 export const useGlobalStore = defineStore('global', {
   state: () => ({
     userId: null,  
-    userType: null  
+    userType: null,
+    nickname: null,
+    profilePhotoUrl: null,
   }),
   actions: {
     changeUserId(id) {
@@ -13,9 +15,17 @@ export const useGlobalStore = defineStore('global', {
     changeUserType(type) {
       this.userType = type
     },
+    changeNickname(name) {
+      this.nickname = name
+    },
+    changeProfilePhotoUrl(url) {
+      this.profilePhotoUrl = url
+    },
     logout() {
       this.userId = null
       this.userType = null
+      this.nickname = null
+      this.profilePhotoUrl = null
     }
   }
   

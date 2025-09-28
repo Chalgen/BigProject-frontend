@@ -22,8 +22,9 @@
             </div>
         </div>
         <div class="login-message">
-            <div class="login-text">登录信息</div>
-            <br>
+            <div v-if="isLoginSuccess==false">
+                等待您的登录...
+            </div>
             <div v-if="isLoginSuccess" class="success-message">
                 <h2>登录成功</h2>
                 <div class="user-info">
@@ -37,6 +38,8 @@
                   </div>
                   <div v-else>
                     <p>用户编号：{{ userData.user_id }}</p>
+                    <p>用户昵称：{{ globalStore.nickname }}</p>
+                    <p>用户昵称：{{ globalStore.profilePhotoUrl }}</p>
                     <p>学生</p>
                   </div>
                 </div>
@@ -71,6 +74,8 @@
     const errorMessage = ref('');
     const userType = ref('');
     const userId = ref('');
+    const nickname=ref('');
+    const profilePhotoUrl=ref('');
     const fetchLoginInfo = () => {
         trylogin(); 
     }
@@ -94,8 +99,8 @@
             isLoading.value = false;
             return;
         }
-        //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
-        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
+        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
+        //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
             .then(response => {
                 const { code, data, msg } = response.data;
                 if (code === 200 && msg === 'success') {
@@ -103,8 +108,13 @@
                     userData.value = data;
                     userType.value = data.user_type;
                     userId.value = data.user_id;
+                    nickname.value = data.nickname;
+                    profilePhotoUrl.value = data.photoUrl;
+
                     globalStore.changeUserId(userId);
                     globalStore.changeUserType(data.user_type);
+                    globalStore.changeNickname(data.nickname);
+                    globalStore.changeProfilePhotoUrl(data.photoUrl);
                 } else {
                     errorMessage.value = msg || '登录失败，请重试';
                 }

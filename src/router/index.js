@@ -21,7 +21,7 @@ const routes=[
         path:"/HomePages/Student/StudentHome",//网页path
         name: 'StudentHome',
         component:()=>import("@/views/HomePages/Student/StudentHome.vue"), 
-        //meta: { requiresAuth: true }, 
+        meta: { requiresAuth: true }, 
         children: [
           //嵌套更深的路由
           {
@@ -29,25 +29,19 @@ const routes=[
             name: 'StudentView',
             component:()=>import("@/views/HomePages/Student/StudentView.vue"), 
             //component: () => import('@/views/HomePages/StudentHome/StudentView.vue')
-            //meta: { requiresAuth: true }, 
+            meta: { requiresAuth: true }, 
           },
           {
             path: 'StudentModify', 
             name: 'StudentModify',
             component:()=>import("@/views/HomePages/Student/StudentModify.vue"), 
-            //meta: { requiresAuth: true }, 
+            meta: { requiresAuth: true }, 
           },
           {
             path: 'StudentPost', 
             name: 'StudentPost',
             component:()=>import("@/views/HomePages/Student/StudentPost.vue"), 
-            //meta: { requiresAuth: true }, 
-          },
-          {
-            path: 'StudentLogout', 
-            name: 'StudentLogout',
-            component:()=>import("@/views/HomePages/Student/StudentLogout.vue"), 
-            //meta: { requiresAuth: true }, 
+            meta: { requiresAuth: true }, 
           },
         ]
     },
@@ -58,26 +52,26 @@ const routes=[
         path:"/HomePages/GeneralAdmin/GeneralAdminHome",
         //name:Homepage,用home就崩了？？
         component:()=>import("@/views/HomePages/GeneralAdmin/GeneralAdminHome.vue"),
-        //meta: { requiresAuth: true }
+        meta: { requiresAuth: true },
         children: [
           //嵌套更深的路由
           {
             path: 'GeneralAdminView', 
             name: 'GeneralAdminView',
             component:()=>import("@/views/HomePages/GeneralAdmin/GeneralAdminView.vue"),
-            //meta: { requiresAuth: true }
+            meta: { requiresAuth: true },
           },
           {
             path: 'GeneralAdminCheck', 
             name: 'GeneralAdminCheck',
             component:()=>import("@/views/HomePages/GeneralAdmin/GeneralAdminCheck.vue"), 
-            //meta: { requiresAuth: true }           
+            meta: { requiresAuth: true }           
           },
           {
             path: 'GeneralAdminModify', 
             name: 'GeneralAdminModify',
             component:()=>import("@/views/HomePages/GeneralAdmin/GeneralAdminModify.vue"), 
-            //meta: { requiresAuth: true }
+            meta: { requiresAuth: true }
           },
         ]
     },

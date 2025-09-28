@@ -29,6 +29,18 @@ import { useRouter } from 'vue-router';
   max-width: 800px;
   margin: 2rem auto;
   padding: 0 1rem;
+  
+  position: absolute;
+    top: 0;
+    left: 0;
+  
+    min-width: 100%;
+    min-height: 100%;
+    /*object-fit: cover; background-color:red;
+    
+    width: auto;
+    height: auto; 覆盖容器，可能裁剪边缘但保持比例 object-position: center;  */
+    
 }
 .btn {
   display:flex;

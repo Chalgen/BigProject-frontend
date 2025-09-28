@@ -1,7 +1,7 @@
 
 <template scoped>
   <div class="container">
-    <h1>所有反馈</h1>
+    <h1>浏览所有反馈</h1>
     <div class="post-settings">
       <button class="select-tag" @click="showModal = true">点击选择标签</button>
     </div>

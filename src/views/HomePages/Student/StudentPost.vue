@@ -8,7 +8,7 @@
     >
     <textarea 
       v-model="content" 
-      placeholder="内容...test" 
+      placeholder="内容" 
       class="postcontent"
     ></textarea>
     <div class="post-settings">
@@ -39,6 +39,13 @@
         <button @click="showModal = false" class="confirm-btn">确定</button>
       </div>
     </div>
+
+    <div v-if="sentSuccessPopup==true" class="success-background">
+      <div class="success-popup">
+        <h1>反馈发送成功！</h1>
+        <button @click="sentSuccessPopup=false" class="close-success-popup">确认</button>
+      </div>
+    </div>
     
   </div>
 </template>
@@ -50,9 +57,10 @@ import { useRouter } from 'vue-router'
 import axios from "axios";
 const router = useRouter()
 const { proxy } = getCurrentInstance()
-const global = useGlobalStore()
+const globalStore = useGlobalStore()
 const IsAnon=ref(false);
 const IsUrgent=ref(false);
+const sentSuccessPopup=ref(false);
 
 function CheckAnon(){
   if(IsAnon.value==false){
@@ -78,10 +86,10 @@ function jumphomepage(){
 
 const title=ref();
 const content=ref();
-const user_id=global.userId;
+const user_id=globalStore.userId;
 
 function post(){
-  const postingdata={
+  const postingData={
     content : {
       title:title.value,
       content:content.value,
@@ -90,9 +98,21 @@ function post(){
       Urgent:IsUrgent.value,
     },
     user_id : user_id,
-    test_selected_lenth: selected.lenth
+    //test_selected_lenth: selected.lenth
   }
-  axios.post('http://127.0.0.1:4523/m1/7074224-6795300-default/api/student/post',postingdata)
+  title.value = '';
+  content.value = '';
+  sentSuccessPopup.value=true
+
+  axios.post('http://127.0.0.1:4523/m1/7074224-6795300-default/api/student/post',postingData).then(response=>{
+    const {doce,data,msg}=response.data;
+    /*if(code==200&&msg=='success'){
+      sentSuccessPopup.value=true
+    }else{
+
+    }*/
+  })
+  sentSuccessPopup.value=true;
 }
 
 const showModal = ref(false) // 控制弹窗显示
@@ -114,6 +134,7 @@ const toggleTag = (tag) => {
 
 <style scoped>
 /*部分ai生成，最后会人力写orz */
+/* .container里面的都是手写的 */
 .container {
   max-width: 800px;
   margin: 2rem auto;
@@ -122,6 +143,51 @@ const toggleTag = (tag) => {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  /* 弹窗效果 */
+  .success-background{
+    background-color: black;
+    opacity: 20%;
+
+    position: fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+
+    .success-popup{
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+
+      display: flex;
+      flex-direction:column;
+      justify-content: center;
+
+      background-color: #ddd;
+      border: 2px  #42b983;
+    }
+  }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  
+    .modal-box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+    }
 }
 
 h1 {
@@ -231,24 +297,7 @@ h1 {
   }
 }
 
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal-box {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 400px;
-}
+
 .modal-box h4 { margin: 0 0 15px; display: flex; justify-content: space-between; align-items: center; }
 .modal-box button { border: none; cursor: pointer; }
 

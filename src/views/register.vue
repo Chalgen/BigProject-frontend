@@ -29,7 +29,6 @@
         </div>
 
         <div class="register-message"><!--status 0未注册1注册成功2失败-->
-            注册信息
             <div v-if="RegisterStatus===0" class="waiting-message">
                 等待您的注册......
             </div>
