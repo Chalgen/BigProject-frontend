@@ -169,7 +169,6 @@
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
     border: 0;
 }
 
@@ -181,12 +180,10 @@
     min-height: 100vh;
     background-color: lightblue;
     padding: 20px;
-    font-family: "Microsoft YaHei", sans-serif;
-
+    
     .login-container {
-        background-color: #fff;
+        background-color: white;
         border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         padding: 30px 40px;
         width: 100%;
         max-width: 400px;
@@ -196,7 +193,7 @@
             text-align: center;
             font-size: 22px;
             font-weight: 600;
-            color: #333;
+            color:black;
             margin-bottom: 25px;
         }
     }
@@ -225,25 +222,24 @@ input[type="text"], input[type="password"] {
 }
 
 input[type="text"]:focus, input[type="password"]:focus {
-    border-color: darkblue;
-    box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+    border-color: blue;
 }
 
 button {
     width: 100%;
-    background-color: darkblue;
+    background-color: blue;
     color: white;
     border: none;
     border-radius: 4px;
     padding: 11px 0;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    /* transition: background-color 0.3s; */
     margin-top: 10px;
 }
 
 button:hover {
-    background-color: #003366; 
+    background-color: darkblue; 
 }
 
 .testlogin-button button {
@@ -271,7 +267,7 @@ button:hover {
 }
 
 .user-info {
-    background-color: #f0f9eb;
+    background-color: white;
     border-radius: 4px;
     padding: 15px;
     margin: 15px 0;
