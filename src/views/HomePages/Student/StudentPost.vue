@@ -146,27 +146,30 @@ const toggleTag = (tag) => {
 
   /* 弹窗效果 */
   .success-background{
-    background-color: black;
-    opacity: 20%;
-
     position: fixed;
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 
     .success-popup{
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      background-color: #fff;
+      width: 100%;
+      max-width: 250px;
+      border-radius: 8px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      position: relative;
 
-      display: flex;
-      flex-direction:column;
-      justify-content: center;
-
-      background-color: #ddd;
-      border: 2px  #42b983;
+      display:flex;
+      flex-direction: column;
+      justify-items: center;
     }
   }
     .modal {

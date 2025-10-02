@@ -21,12 +21,12 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-    import { useGlobalStore } from '@/store/global'
-    const router = useRouter()
-    import { ref, onMounted, getCurrentInstance } from 'vue';
-    import axios from "axios";
-    const { proxy } = getCurrentInstance()
-    const globalStore = useGlobalStore()
+import { useGlobalStore } from '@/store/global'
+const router = useRouter()
+import { ref, onMounted, getCurrentInstance } from 'vue';
+import axios from "axios";
+const { proxy } = getCurrentInstance()
+const globalStore = useGlobalStore()
 //import()
 </script>
 

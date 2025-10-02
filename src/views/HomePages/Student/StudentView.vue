@@ -31,7 +31,7 @@
       <div v-for="item in filteredItems" :key="item.id" class="item">
         <h2>{{ item.title }}</h2>
         <h6>{{ item.tag }} {{ item.isSolved?"已解决":"未解决" }}</h6><!--后续可以通过整个页面可视化信息显示解决状态-->
-        <button @click="openContent(item.id)">进入反馈详情</button>
+        <button @click="openContent(item.id)">进入反馈详情>>></button>
 
       </div>
     </div>
@@ -39,16 +39,17 @@
       <div class="content-container">
         <div class="title-popup">
           <h1>{{ showPost.title }}</h1>
-        
+          <h6>{{ showPost.tag }} {{ showPost.isSolved?"已解决":"未解决" }}{{  }}</h6>
         </div>
         <div class="info-popup">
-          <h6>{{ showPost.tag }} {{ showPost.isSolved?"已解决":"未解决" }}{{  }}</h6><!-- 后续可以通过整个页面可视化信息显示解决状态-->
+          <!-- 后续可以通过整个页面可视化信息显示解决状态-->
         </div>
         <div class="content-popup">
           {{ showPost.content }}
         </div>
         <div class="rate-popup">
-
+          <el-rate v-model="rating"></el-rate>
+          <span>评分：{{ rating }}</span>
         </div>
         <div class="comment-area">
           <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
@@ -78,6 +79,8 @@ const showModal = ref(false)
 
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题',"校园环境问题","校园安全问题","意见与建议","其他"])
 const selected = ref([])
+
+const rating=ref()
 
 
 const posts=ref([])
@@ -381,9 +384,13 @@ function sentComment(){
   align-items: center;
   z-index: 1000;
   .content-container {
+    /** */
+    
     background-color: #fff;
     width: 100%;
-    max-width: 500px;
+    max-width: 1000px;
+    height: auto;
+    max-height: 70vh;
     border-radius: 8px;
     padding: 25px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -408,6 +415,7 @@ function sentComment(){
   flex: 1; /* 占满剩余空间 */
   overflow-y: auto; 
   max-height: 40vh;
+  white-space: pre;
 }
 
 
@@ -501,13 +509,6 @@ function sentComment(){
 }
 
 
-.content-popup {
-  margin-bottom: 2rem;
-  color: #374151; 
-  line-height: 1.7; 
-  font-size: 1rem;
-}
-
 /* 评分区域 */
 .rate-popup {
   margin-bottom: 2rem;
@@ -557,6 +558,7 @@ function sentComment(){
 .close-popup {
   display: flex;
   justify-content: center;
+  margin-bottom: 1rem;
 }
 
 .close-popup button {

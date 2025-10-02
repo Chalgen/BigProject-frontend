@@ -1,5 +1,6 @@
-<template scoped>
+<template>
     <div class="container">
+        <!--<el-button>default</el-button>-->
         <div class="login-container">
             <div class="welcome">欢迎登录</div>
             <div class="username">
@@ -23,7 +24,7 @@
         </div>
         <div class="login-message">
             <div v-if="isLoginSuccess==false">
-                等待您的登录...
+                等待您的登录...{{ baseApi }}<!---->
             </div>
             <div v-if="isLoginSuccess" class="success-message">
                 <h2>登录成功</h2>
@@ -39,7 +40,6 @@
                   <div v-else>
                     <p>用户编号：{{ userData.user_id }}</p>
                     <p>用户昵称：{{ globalStore.nickname }}</p>
-                    <p>用户昵称：{{ globalStore.profilePhotoUrl }}</p>
                     <p>学生</p>
                   </div>
                 </div>
@@ -76,6 +76,7 @@
     const userId = ref('');
     const nickname=ref('');
     const profilePhotoUrl=ref('');
+    const baseApi=ref('');
     const fetchLoginInfo = () => {
         trylogin(); 
     }
@@ -99,8 +100,11 @@
             isLoading.value = false;
             return;
         }
-        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
+        baseApi.value=import.meta.env.VITE_API_BASE_URL
+        const encodedApi = encodeURIComponent(baseApi);
+        //axios.post( `${baseApi}/351321866`, userdata)
         //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
+        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
             .then(response => {
                 const { code, data, msg } = response.data;
                 if (code === 200 && msg === 'success') {

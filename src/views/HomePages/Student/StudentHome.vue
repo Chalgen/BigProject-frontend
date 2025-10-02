@@ -14,9 +14,10 @@
       <h1>学生服务平台[学生端]</h1>
       <div class="user-message">
         <div class="photo-container">
-          <img
+          <!--<img
           :src="globalStore.profilePhotoUrl"
-          class="profile-photo">
+          class="profile-photo">-->
+          <el-avator src="globalStore.profilePhotoUrl"></el-avator>
         </div>
         <div><h2>{{globalStore.nickname}}</h2></div>
       </div>
