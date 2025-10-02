@@ -95,7 +95,7 @@ const errorMessage = ref('');
 
 const fetchPosts = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:4523/m1/7131475-6854516-default/api/posts?apifoxApiId=354486410'/*,
+    const response = await axios.get('http://127.0.0.1:4523/m1/7120556-6843396-default/api/feedback'/*,
     {params: {
       user_id:globalStore.userId
     }}*/);

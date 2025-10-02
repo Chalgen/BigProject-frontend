@@ -6,20 +6,20 @@
             <div class="username">
                 <span>账号：</span>
                 <label for="account-input" class="sr-only">账号</label>
-                <input type="text" v-model="username" id="account-input" aria-describedby="username-hint">
+                <input type="text" v-model="username" id="account-input">
                 <span id="username-hint" class="sr-only">请输入您的登录账号</span>
             </div>
             <div class="password">
                 <span>密码：</span>
                 <label for="password-input" class="sr-only">密码</label>
-                <input type="password" v-model="password" class="password-input" id="password-input" aria-describedby="password-hint">
+                <input type="password" v-model="password" class="password-input" id="password-input">
                 <span id="password-hint" class="sr-only">请输入您的登录密码</span>
             </div>
             <div class="trylogin-button">
-                <button @click="trylogin()" id="login2trylogin" aria-label="登录">登录</button>
+                <button @click="trylogin()" id="login2trylogin">登录</button>
             </div>
             <div class="gotoRegister">
-                <button @click="gotoRegister()" id="login2reg" aria-label="注册">注册</button>
+                <button @click="gotoRegister()" id="login2reg">注册</button>
             </div>
         </div>
         <div class="login-message">
@@ -44,13 +44,13 @@
                   </div>
                 </div>
                 <div class="testergotohome">
-                    <button @click="testergotohome()" id="logintester" aria-label="确认登录信息并进入首页">确认登录信息并登录</button>
+                    <button @click="testergotohome()" id="logintester">确认登录信息并登录</button>
                 </div>
             </div>
             <div v-if="errorMessage" class="error-message">
                 <i class="error1"></i>
                 <p>{{ errorMessage }}</p>
-                <button @click="fetchLoginInfo" class="retry-button" aria-label="重试登录请求">重试</button>
+                <button @click="fetchLoginInfo" class="retry-button">重试</button>
             </div>
         </div>
     </div>
@@ -104,7 +104,7 @@
         const encodedApi = encodeURIComponent(baseApi);
         //axios.post( `${baseApi}/351321866`, userdata)
         //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
-        axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
+        axios.post('http://127.0.0.1:4523/m1/7120556-6843396-default/api/auth/login', userdata)
             .then(response => {
                 const { code, data, msg } = response.data;
                 if (code === 200 && msg === 'success') {
