@@ -1,4 +1,3 @@
-
 <!--主要需求实现：-->
 <!--获取所有自己发的帖子的title、id、（时间？），点击button向后端询问getPostData(id=xxx)，获得详细内容
 并跳转详细内容页，展示get出的内容，可以看到content、是否解决等-->
@@ -12,23 +11,35 @@
 
     <div class="title">
       <h1>学生服务平台[学生端]</h1>
+      <!--
       <div class="user-message">
         <div class="photo-container">
-          <!--<img
-          :src="globalStore.profilePhotoUrl"
-          class="profile-photo">-->
           <el-avator src="globalStore.profilePhotoUrl"></el-avator>
+          <img
+          :src="globalStore.profilePhotoUrl"
+          class="profile-photo">
         </div>
         <div><h2>{{globalStore.nickname}}</h2></div>
       </div>
+      <el-row>
+        <el-cal push="10">
+          <h2>{{globalStore.nickname}}</h2>
+        </el-cal>
+      </el-row>-->
+
+      <div class="user-message">
+        <el-avator :src="globalStore.profilePhotoUrl"></el-avator>
+        <img :src="globalStore.profilePhotoUrl" class="profile-photo">
+        <h2>{{ globalStore.nickname }}</h2>
+      </div>
     </div>
-    
+
     <div class="navigate">
 
-    <RouterLink :to="{ name: 'StudentView' }" class="navigate-btn">我的历史反馈</RouterLink>
-    <RouterLink :to="{ name: 'StudentPost' }" class="navigate-btn">反馈校园事务</RouterLink>
-    <RouterLink :to="{ name: 'StudentModify' }" class="navigate-btn">修改个人信息</RouterLink>
-    <!--<RouterLink :to="{ name: 'StudentLogout' }" class="navigate-btn">登出</RouterLink>     -->
+      <RouterLink :to="{ name: 'StudentView' }" class="navigate-btn">我的历史反馈</RouterLink>
+      <RouterLink :to="{ name: 'StudentPost' }" class="navigate-btn">反馈校园事务</RouterLink>
+      <RouterLink :to="{ name: 'StudentModify' }" class="navigate-btn">修改个人信息</RouterLink>
+      <!--<RouterLink :to="{ name: 'StudentLogout' }" class="navigate-btn">登出</RouterLink>     -->
     </div>
 
     <div class="main-content">
@@ -57,14 +68,14 @@ const globalStore = useGlobalStore()
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
   .title {
-    
-    display:flex;
+
+    display: flex;
     flex-direction: row;
     justify-items: right;
     justify-content: center;
     text-align: center;
-    background-color: #35495e;
-    color:white;
+    background-color: #0066CC;
+    color: white;
     z-index: 200;
 
     .user-message {
@@ -75,17 +86,17 @@ const globalStore = useGlobalStore()
       top: 1.5rem;
       right: 2rem;
       color: white;
-      gap: 13px;
+      gap: 5px;
 
       .profile-photo {
-        width: 35px;
-        height: 35px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         background-color: #42b983;
         display: inline-block;
       }
     }
-    
+
   }
 }
 
@@ -165,7 +176,7 @@ const globalStore = useGlobalStore()
   overflow-y: auto;
 }
 
-.main-content >>> .view-container {
+.main-content>>>.view-container {
   background-color: white;
   border-radius: 8px;
   padding: 2rem;
@@ -180,7 +191,7 @@ const globalStore = useGlobalStore()
     flex-direction: row;
     padding: 1rem;
   }
-  
+
   .main-content {
     margin-left: 0;
     top: 150px;

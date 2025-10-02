@@ -2,12 +2,18 @@ import { defineStore } from 'pinia'  // 从 pinia 导入 defineStore
 
 // 定义并导出 useGlobalStore
 export const useGlobalStore = defineStore('global', {
-  state: () => ({
-    userId: null,  
-    userType: null,
-    nickname: null,
-    profilePhotoUrl: null,
-  }),
+  state: () => {
+    const savedUserInfo = localStorage.getItem('userInfo');
+    const parsedInfo = savedUserInfo ? JSON.parse(savedUserInfo) : {};
+
+    return {
+      userId: parsedInfo.userId || null,
+      userType: parsedInfo.userType || null,
+      nickname: parsedInfo.nickname || null,
+      profilePhotoUrl: parsedInfo.profilePhotoUrl || null,
+      token: parsedInfo.token || null,
+    }
+  },
   actions: {
     changeUserId(id) {
       this.userId = id
@@ -21,12 +27,17 @@ export const useGlobalStore = defineStore('global', {
     changeProfilePhotoUrl(url) {
       this.profilePhotoUrl = url
     },
+    GetToken(token) {
+      this.token = token
+    },
     logout() {
       this.userId = null
       this.userType = null
       this.nickname = null
       this.profilePhotoUrl = null
+      this.token = null;
+      localStorage.removeItem('userInfo');
     }
   }
-  
+
 })

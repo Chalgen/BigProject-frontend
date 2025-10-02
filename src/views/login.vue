@@ -6,174 +6,216 @@
             <div class="username">
                 <span>账号：</span>
                 <label for="account-input" class="sr-only">账号</label>
-                <input type="text" v-model="username" id="account-input">
+                <input type="text" v-model="username" id="account-input" aria-describedby="username-hint">
                 <span id="username-hint" class="sr-only">请输入您的登录账号</span>
             </div>
             <div class="password">
                 <span>密码：</span>
                 <label for="password-input" class="sr-only">密码</label>
-                <input type="password" v-model="password" class="password-input" id="password-input">
+                <input type="password" v-model="password" class="password-input" id="password-input"
+                    aria-describedby="password-hint">
                 <span id="password-hint" class="sr-only">请输入您的登录密码</span>
             </div>
             <div class="trylogin-button">
-                <button @click="trylogin()" id="login2trylogin">登录</button>
+                <button @click="trylogin()" id="login2trylogin" aria-label="登录">登录</button>
             </div>
             <div class="gotoRegister">
-                <button @click="gotoRegister()" id="login2reg">注册</button>
+                <button @click="gotoRegister()" id="login2reg" aria-label="注册">注册</button>
             </div>
         </div>
         <div class="login-message">
-            <div v-if="isLoginSuccess==false">
-                等待您的登录...{{ baseApi }}<!---->
+            <div v-if="isLoginSuccess == false">
+                等待您的登录...<!--{{ baseApi }}-->
             </div>
             <div v-if="isLoginSuccess" class="success-message">
                 <h2>登录成功</h2>
                 <div class="user-info">
-                  <div v-if="userType===1">
-                    <p>用户编号：{{ userData.user_id }}</p>
-                    <p>普通管理员</p>
-                  </div>
-                  <div v-else-if="userType===2">
-                    <p>用户编号：{{ userData.user_id }}</p>
-                    <p>超级管理员</p>
-                  </div>
-                  <div v-else>
-                    <p>用户编号：{{ userData.user_id }}</p>
-                    <p>用户昵称：{{ globalStore.nickname }}</p>
-                    <p>学生</p>
-                  </div>
+                    <div v-if="userType === 1">
+                        <p>用户编号：{{ userData.user_id }}</p>
+                        <p>普通管理员</p>
+                    </div>
+                    <div v-else-if="userType === 2">
+                        <p>用户编号：{{ userData.user_id }}</p>
+                        <p>超级管理员</p>
+                    </div>
+                    <div v-else>
+                        <p>用户编号：{{ userData.user_id }}</p>
+                        <p>用户昵称：{{ globalStore.nickname }}</p>
+                        <p>学生</p>
+                    </div>
                 </div>
                 <div class="testergotohome">
-                    <button @click="testergotohome()" id="logintester">确认登录信息并登录</button>
+                    <button @click="testergotohome()" id="logintester" aria-label="确认登录信息并进入首页">确认登录信息并登录</button>
                 </div>
             </div>
             <div v-if="errorMessage" class="error-message">
                 <i class="error1"></i>
                 <p>{{ errorMessage }}</p>
-                <button @click="fetchLoginInfo" class="retry-button">重试</button>
+                <button @click="fetchLoginInfo" class="retry-button" aria-label="重试登录请求">重试</button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-    import { useRouter } from 'vue-router';
-    import { useGlobalStore } from '@/store/global'
-    const router = useRouter()
-    import { ref, onMounted, getCurrentInstance } from 'vue';
-    import axios from "axios";
-    const { proxy } = getCurrentInstance()
+import { useRouter } from 'vue-router';
+import { useGlobalStore } from '@/store/global'
+const router = useRouter()
+import { ref, onMounted, getCurrentInstance } from 'vue';
+import axios from "axios";
+const { proxy } = getCurrentInstance()
+const globalStore = useGlobalStore()
+
+import { loginApi } from '@/api/user'
+import { ElMessage } from 'element-plus'
+
+const username = ref('');
+const password = ref('');
+
+const isLoading = ref(true);
+const isLoginSuccess = ref(false);
+const userData = ref(null);
+const errorMessage = ref('');
+const userType = ref('');
+const userId = ref('');
+const nickname = ref('');
+const profilePhotoUrl = ref('');
+const baseApi = ref('');
+const fetchLoginInfo = () => {
+    trylogin();
+}
+
+async function trylogin() {
+    isLoading.value = true;
+    errorMessage.value = '';
+    isLoginSuccess.value = false;
+    userData.value = null;
+    const userdata = {
+        username: username.value.trim(),
+        password: password.value,
+    }
+    if (!userdata.username) {
+        errorMessage.value = '请输入账号';
+        isLoading.value = false;
+        return;
+    }
+    if (!userdata.password) {
+        errorMessage.value = '请输入密码';
+        isLoading.value = false;
+        return;
+    }
+    //baseApi.value=import.meta.env.VITE_API_BASE_URL
+    //const encodedApi = encodeURIComponent(baseApi);
+    //axios.post( `${baseApi}/351321866`, userdata)
+    //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
+    try {
+        const response = await loginApi(userdata);
+        const { code, data, msg } = response.data;
+        if (code === 200 && msg === 'success') {
+            isLoginSuccess.value = true;
+            userData.value = data;
+            userType.value = data.user_type;
+            userId.value = data.user_id;
+            nickname.value = data.nickname;
+            profilePhotoUrl.value = data.photoUrl;
+
+            globalStore.changeUserId(userId);
+            globalStore.changeUserType(data.user_type);
+            globalStore.changeNickname(data.nickname);
+            globalStore.changeProfilePhotoUrl(data.photoUrl);
+            globalStore.GetToken(data.token);
+
+            localStorage.setItem('userInfo', JSON.stringify({
+                userId: data.user_id,
+                userType: data.user_type,
+                nickname: data.nickname,
+                profilePhotoUrl: data.photoUrl,
+                token: data.token
+            }));
+        } else {
+            errorMessage.value = msg || '登录失败，请重试';
+        }
+    } catch (error) {
+        if (error instanceof Error) {
+            errorMessage.value = error.message;
+        } else {
+            errorMessage.value = '登录失败，请重试';
+        }
+        console.error('登录请求失败:', error);
+    } finally {
+        isLoading.value = false;
+    }
+
+    /*axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
+        .then(response => {
+            const { code, data, msg } = response.data;
+            if (code === 200 && msg === 'success') {
+                isLoginSuccess.value = true;
+                userData.value = data;
+                userType.value = data.user_type;
+                userId.value = data.user_id;
+                nickname.value = data.nickname;
+                profilePhotoUrl.value = data.photoUrl;
+
+                globalStore.changeUserId(userId);
+                globalStore.changeUserType(data.user_type);
+                globalStore.changeNickname(data.nickname);
+                globalStore.changeProfilePhotoUrl(data.photoUrl);
+            } else {
+                errorMessage.value = msg || '登录失败，请重试';
+            }
+        }).catch(error => {
+            if (error.response) {
+                errorMessage.value = `请求错误: ${error.response.data?.msg || '服务器异常'}`;
+            } else {
+                errorMessage.value = '网络错误，无法连接到服务器';
+            }
+            console.error('登录请求失败:', error);
+        }).finally(() => {
+            isLoading.value = false;
+        });*/
+}
+
+
+function testergotohome() {
     const globalStore = useGlobalStore()
+    redirectByUserType(globalStore.userType);
+}
 
-    const username = ref('');
-    const password = ref('');
+const goToStudentmain = () => {
+    router.push('/HomePages/Student/StudentHome')
+}
+const goToGeneralAdminHome = () => {
+    router.push('/HomePages/GeneralAdmin/GeneralAdminHome')
+}
 
-    const isLoading = ref(true);
-    const isLoginSuccess = ref(false);
-    const userData = ref(null);
-    const errorMessage = ref('');
-    const userType = ref('');
-    const userId = ref('');
-    const nickname=ref('');
-    const profilePhotoUrl=ref('');
-    const baseApi=ref('');
-    const fetchLoginInfo = () => {
-        trylogin(); 
+const goToSuperAdminHome = () => {
+    router.push('/HomePages/SuperAdmin/SuperAdminHome')
+}
+
+const gotoRegister = () => {
+    console.log("注册按钮被点击");
+    router.push('/register').catch(err => {
+        console.log("路由跳转失败:", err);
+    });
+}
+
+function redirectByUserType(userType) {
+    switch (userType) {
+        case 1:
+            goToGeneralAdminHome();
+            break;
+        case 2:
+            goToSuperAdminHome();
+            break;
+        case 3:
+            goToStudentmain();
+            break;
+        default:
+            errorMessage.value = '用户类型异常，请联系管理员';
+            setTimeout(() => router.push('/login'), 3000);
     }
-
-    function trylogin() {
-        isLoading.value = true;
-        errorMessage.value = '';
-        isLoginSuccess.value = false;
-        userData.value = null;
-        const userdata = {
-            username: username.value.trim(),
-            password: password.value,
-        }
-        if (!userdata.username) {
-            errorMessage.value = '请输入账号';
-            isLoading.value = false;
-            return;
-        }
-        if (!userdata.password) {
-            errorMessage.value = '请输入密码';
-            isLoading.value = false;
-            return;
-        }
-        baseApi.value=import.meta.env.VITE_API_BASE_URL
-        const encodedApi = encodeURIComponent(baseApi);
-        //axios.post( `${baseApi}/351321866`, userdata)
-        //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
-        axios.post('http://127.0.0.1:4523/m1/7120556-6843396-default/api/auth/login', userdata)
-            .then(response => {
-                const { code, data, msg } = response.data;
-                if (code === 200 && msg === 'success') {
-                    isLoginSuccess.value = true;
-                    userData.value = data;
-                    userType.value = data.user_type;
-                    userId.value = data.user_id;
-                    nickname.value = data.nickname;
-                    profilePhotoUrl.value = data.photoUrl;
-
-                    globalStore.changeUserId(userId);
-                    globalStore.changeUserType(data.user_type);
-                    globalStore.changeNickname(data.nickname);
-                    globalStore.changeProfilePhotoUrl(data.photoUrl);
-                } else {
-                    errorMessage.value = msg || '登录失败，请重试';
-                }
-            }).catch(error => {
-                if (error.response) {
-                    errorMessage.value = `请求错误: ${error.response.data?.msg || '服务器异常'}`;
-                } else {
-                    errorMessage.value = '网络错误，无法连接到服务器';
-                }
-                console.error('登录请求失败:', error);
-            }).finally(() => {
-                isLoading.value = false;
-            });
-    }
-
-    
-    function testergotohome() {
-        const globalStore = useGlobalStore()
-        redirectByUserType(globalStore.userType);
-    }
-
-    const goToStudentmain = () => {
-        router.push('/HomePages/Student/StudentHome')
-    }
-    const goToGeneralAdminHome = () => {
-        router.push('/HomePages/GeneralAdmin/GeneralAdminHome')
-    }
-
-    const goToSuperAdminHome = () => {
-        router.push('/HomePages/SuperAdmin/SuperAdminHome')
-    }
-
-    const gotoRegister = () => {
-        console.log("注册按钮被点击");
-        router.push('/register').catch(err => {
-            console.log("路由跳转失败:", err);
-        });
-    }
-
-    function redirectByUserType(userType) {
-        switch (userType) {
-            case 1:
-                goToGeneralAdminHome();
-                break;
-            case 2:
-                goToSuperAdminHome();
-                break;
-            case 3:
-                goToStudentmain();
-                break;
-            default:
-                errorMessage.value = '用户类型异常，请联系管理员';
-                setTimeout(() => router.push('/login'), 3000);
-        }
-    }
+}
 </script>
 
 <style scoped>
@@ -218,19 +260,22 @@
     }
 }
 
-.username, .password {
+.username,
+.password {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
 
-.username span, .password span {
+.username span,
+.password span {
     width: 60px;
     color: #666;
     font-size: 14px;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"],
+input[type="password"] {
     flex: 1;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -240,7 +285,8 @@ input[type="text"], input[type="password"] {
     transition: border-color 0.3s;
 }
 
-input[type="text"]:focus, input[type="password"]:focus {
+input[type="text"]:focus,
+input[type="password"]:focus {
     border-color: darkblue;
     box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
@@ -259,7 +305,7 @@ button {
 }
 
 button:hover {
-    background-color: #003366; 
+    background-color: #003366;
 }
 
 .testlogin-button button {

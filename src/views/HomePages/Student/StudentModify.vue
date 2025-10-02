@@ -1,40 +1,80 @@
 <template scoped>
   <div class="container">
     <h1>修改个人信息</h1>
-    <div class="show-name"><h3>{{ globalStore.nickname }}:</h3></div>
-    <div class="rename">
-      <span>修改昵称：</span><input type="text" v-model="rename" id="account-input">
+    <div class="show-name">
+      <h3>学生用户&#12288;{{ globalStore.nickname }}:</h3>
     </div>
-    <div class="repassword">
-      <span>修改密码：</span><input type="password" v-model="password" class="password-input">
-      <br></br>
-      <span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
-    </div>
-    <div class="check-profilePhoto">
-      <div class="photo-container"><!--"" -->
-        <img
-        :src="globalStore.profilePhotoUrl"
-        class="profile-photo">
+    <div class="check-container">
+      <div class="check-left">
+        <div class="check-leftin">
+          <div class="rename">
+            <div><span>修改昵称：</span><input type="text" v-model="rename" id="account-input"></div>
+          </div>
+          <div class="repassword">
+            <div><span>修改密码：</span><input type="password" v-model="password" class="password-input"></div>
+
+            <div><span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
+            </div>
+          </div>
+          <div class="contact-container">
+            <div><span>&#12288;手机号：</span><input type="text" v-model="phoneNumber" class="password-input"></div>
+            <div><span>&#12288;&#12288;邮箱：</span><input type="text" v-model="emailAddress"
+                class="confirm-password-input"></div>
+          </div>
+          <div class="logout-container">
+            <button @click="isCheck = true" class="check-post">提交修改</button>
+            <button @click="isLogout = true" class="log-out">退出账号</button>
+          </div>
+        </div>
+
       </div>
-      <span>修改头像：</span>
-      <div class="photo-poster">
-        <span class="photo-text">此处上传头像</span>
-        <input type="file" accept="image/*" @change="sender" class="post-input"></input>
-        <!--<button @click="uploadPhoto":disabled="!selected"></button>-->
+
+      <div class="check-right">
+        <span>修改头像：</span>
+        <div class="photo-container"><!--"" -->
+          <img :src="globalStore.profilePhotoUrl" class="profile-photo">
+        </div>
+
+        <div class="photo-poster">
+          <span class="photo-text">此处上传新头像：</span>
+          <input type="file" accept="image/*" @change="sender" class="post-input"></input>
+          <!--<button @click="uploadPhoto":disabled="!selected"></button>-->
+        </div>
       </div>
+
     </div>
-    <div class="logout-container">
-      <button @click="isLogout=true " class="log-out">登出</button>
-    </div>
-    <div v-if="isLogout==true" class="logout-popup">
+
+
+
+    <div v-if="isLogout == true" class="logout-popup">
       <div class="logout-popup-box">
-        <div class="logout-title">确认登出</div>
+        <div class="logout-title">确认退出账号</div>
         <div class="logoutbtn-container">
-          <button @click="isLogout=false" class="logout-btns">取消</button>
           <button @click="goToLogin" class="logout-btns">确定</button>
+          <button @click="isLogout = false" class="logout-btns">取消</button>
         </div>
       </div>
     </div>
+
+    <div v-if="isCheck == true" class="logout-popup">
+      <div class="logout-popup-box">
+        <div class="logout-title">确认修改账号</div>
+        <div class="logoutbtn-container">
+          <button @click="reviseMessage()" class="logout-btns">确定</button>
+          <button @click="isCheck = false" class="logout-btns">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="confirmPopup == true" class="logout-popup">
+      <div class="logout-popup-box">
+        <div class="logout-title">{{ PopupMessage }}</div>
+        <div class="logoutbtn-container">
+          <button @click="confirmPopup = false, isCheck = false" class="logout-btns">确定</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -45,21 +85,57 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance } from 'vue';
 import axios from "axios";
+import { ChangeUserInfoApi } from '@/api/user';
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
-const isLogout=ref(false);
+const isLogout = ref(false);
+const isCheck = ref(false);
+const confirmPopup = ref(false)
 
-const nickname=ref('')
-nickname.value=globalStore.nickname.value;
-const profilePhotoUrl=ref('')
+const rename = ref()
+const password = ref()
+const confirmpassword = ref()
+const phoneNumber = ref()
+const emailAddress = ref()
 
-    const goToLogin = () => {
-        router.push({ name: 'login' })
+const nickname = ref('')
+nickname.value = globalStore.nickname.value;
+const profilePhotoUrl = ref('')
+const PopupMessage = ref('')
+
+const goToLogin = () => {
+  globalStore.logout();
+  router.push({ name: 'login' })
+}
+async function reviseMessage() {
+  const reviseData = {
+    new_nickname: rename.value,
+    new_password: password.value,
+    new_phoneNumber: phoneNumber.value,
+    new_emailAddress: emailAddress.value,
+  }
+  try {
+    const response = await ChangeUserInfoApi(reviseData);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      confirmPopup.value = true;
+      PopupMessage.value = "修改成功!";
+    } else {
+      confirmPopup.value = true;
+      PopupMessage.value = "修改失败！";
+      //errorMessage.value=data.
     }
+  } catch (error) {
+    confirmPopup.value = true;
+    PopupMessage.value = "未连接到服务器";
+  }
+}
+
+
+
 </script>
 
 <style scoped>
-
 .container {
   max-width: 800px;
   margin: 2rem auto;
@@ -68,6 +144,53 @@ const profilePhotoUrl=ref('')
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  .check-container {
+    border: 2px solid black;
+    display: flex;
+    gap: v-bind(spacing + 'px');
+    padding: 20px;
+
+    .check-left {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /**/
+      margin: 1rem;
+
+      .check-leftin {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+
+        .rename,
+        .repassword,
+        .contact-container,
+        .logout-container,
+        .pushchecking {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+      }
+    }
+
+    .check-right {
+      flex: 1;
+      gap: 10px;
+
+      .profile-photo {
+        width: 300px;
+        height: 300px;
+        /*border-radius: 50%;*/
+        object-fit: cover;
+        border: 2px solid #eee;
+      }
+    }
+
+
+  }
 
   h1 {
     color: #2c3e50;
@@ -78,19 +201,7 @@ const profilePhotoUrl=ref('')
     padding-bottom: 0.8rem;
     border-bottom: 1px solid #f0f0f0;
   }
-  .check-profilePhoto{
-    .photo-container {
-      margin: 1rem 0;
-    }
 
-    .profile-photo {
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #eee;
-    }
-  }
   .logout-popup {
     position: fixed;
     top: 0;
@@ -98,13 +209,13 @@ const profilePhotoUrl=ref('')
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.3);
-    
+
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
 
-    .logout-popup-box{
+    .logout-popup-box {
       background-color: #fff;
       width: 100%;
       max-width: 170px;
@@ -113,23 +224,24 @@ const profilePhotoUrl=ref('')
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       position: relative;
 
-      display:flex;
+      display: flex;
       flex-direction: column;
       justify-items: center;
 
-      .logout-title{
+      .logout-title {
         text-align: center;
         margin-bottom: 20px;
         font-size: 24px;
       }
-      .logoutbtn-container{
+
+      .logoutbtn-container {
         display: flex;
         justify-content: space-around;
         gap: 40px;
 
-        .logout-btns{
-          width:80px;
-          height:35px;
+        .logout-btns {
+          width: 80px;
+          height: 35px;
           font-size: 14px;
           border-radius: 8px;
         }
