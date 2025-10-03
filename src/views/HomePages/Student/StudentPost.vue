@@ -4,12 +4,13 @@
     <input v-model="title" placeholder="标题" class="posttitle">
     <textarea v-model="content" placeholder="内容" class="postcontent"></textarea>
     <div class="post-settings">
-      <button class="IsAnonbutton" @click="CheckAnon()">{{ IsAnon ? "是否匿名：匿名" : "是否匿名：实名" }}</button>
-      <button class="IsUrgentbutton" @click="CheckUrgent()">{{ IsUrgent ? "是否紧急：紧急" : "是否紧急：不紧急" }}</button>
-      <button class="select-tag" @click="showModal = true">点击选择标签</button>
+      <el-button class="IsAnonbutton" @click="CheckAnon()">{{ IsAnon ? "是否匿名：匿名" : "是否匿名：实名" }}</el-button>
+      <el-button class="IsUrgentbutton" @click="CheckUrgent()">{{ IsUrgent ? "是否紧急：紧急" : "是否紧急：不紧急" }}</el-button>
+      <el-button class="select-tag" @click="showModal = true">点击选择标签</el-button>
+      <el-button class="choose-attach" @click="sentAttach = true">发送附件</el-button>
     </div>
     <div class="post-div">
-      <button class="postbutton" @click="post()">发帖</button>
+      <el-button class="postbutton" @click="post()">发帖</el-button>
     </div>
 
 
@@ -33,6 +34,18 @@
         <button @click="postPopup = false" class="close-success-popup">确认</button>
       </div>
     </div>
+    <el-dialog title="上传附件" v-model="sentAttach" :width="'70%'" :z-index='4000' :align-center="true">
+      <span class="photo-text">此处上传附件照片：</span>
+
+      <!--<input type="file" accept="image/*" @change="sender" class="post-input"></input><button @click="uploadPhoto":disabled="!selected"></button>
+          <button @click="uploadPhoto()">上传新头像</button>-->
+      <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
+        :on-exceed="() => ElMessage.warning('仅支持单张图片')">
+        <el-icon>
+          <Plus />
+        </el-icon>
+      </el-upload>
+    </el-dialog>
   </div>
 </template>
 
@@ -42,6 +55,9 @@ import { ref, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router'
 import axios from "axios";
 import { SentPostApi } from '@/api/user';
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
 const router = useRouter()
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
@@ -50,6 +66,7 @@ const IsUrgent = ref(false);
 const postPopup = ref(false);
 const PopupMessage = ref('');
 const errorMessage = ref('')
+const sentAttach = ref(false)
 
 function CheckAnon() {
   if (IsAnon.value == false) {
@@ -78,15 +95,15 @@ const content = ref();
 const user_id = globalStore.userId;
 
 async function post() {
+
+
   const postingData = {
-    content: {
-      title: title.value,
-      content: content.value,
-      tags: selected.value,
-    },
-    anonymity: IsAnon.value,
-    Urgent: IsUrgent.value,
-    user_id: user_id,
+    title: title.value,
+    content: content.value,
+    feedback_type: tagToCodeMap[selected.value],
+    is_nicked: IsAnon.value,
+    is_urgent: IsUrgent.value,
+    //user_id: user_id,
     //test_selected_lenth: selected.lenth
   }
   title.value = '';
@@ -121,6 +138,20 @@ async function post() {
 
 const showModal = ref(false) // 控制弹窗显示
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"]) // 所有可选标签
+const tagToCodeMap = {
+  //'div': 1,
+  "意见与建议": 1000,
+  "其他": 1001,
+
+  "宿舍设施报修": 2000,
+  "教学设施报修": 2001,
+  "公共设施报修": 2002,
+
+  "校园网服务": 3000,
+  "食堂餐饮问题": 3001,
+  "校园环境问题": 3002,
+  "校园安全问题": 3003,
+}
 const selected = ref([]) // 已选标签
 
 // 切换标签选择：点击标签添加/移除
@@ -130,9 +161,24 @@ const toggleTag = (tag) => {
   idx > -1 ? selected.value.splice(idx, 1) : selected.value.push(tag)
 }
 
+const handleUpload = async ({ file }) => {
+  const formData = new FormData()
+  formData.append('image', file)  // 保持与后端约定的参数名
 
+  try {
+    // 使用封装的ChangeProfilePhotoApi接口
+    const response = await FetchAttachApi(formData)
+    const { code, msg, data } = response.data
 
-
+    if (code === 200 && msg === 'success') {
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error(msg || '上传失败')
+    }
+  } catch (error) {
+    ElMessage.error('上传失败：' + (error.response?.data?.msg || '网络错误'))
+  }
+}
 
 </script>
 
@@ -148,7 +194,20 @@ const toggleTag = (tag) => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-  /* 弹窗效果 */
+  .el-message {
+    font-size: 16px;
+    padding: 15px 20px;
+  }
+
+  .el-message .el-message__icon {
+    font-size: 20px;
+    margin-right: 10px;
+  }
+
+  .el-message .el-message__closeBtn {
+    font-size: 18px;
+  }
+
   .success-background {
     position: fixed;
     top: 0;
@@ -257,7 +316,8 @@ h1 {
 
 .IsAnonbutton,
 .IsUrgentbutton,
-.select-tag {
+.select-tag,
+.choose-attach {
   background-color: green;
   color: white;
   border: none;

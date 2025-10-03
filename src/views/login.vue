@@ -67,7 +67,6 @@ const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
 
 import { loginApi } from '@/api/user'
-import { ElMessage } from 'element-plus'
 
 const username = ref('');
 const password = ref('');
@@ -76,7 +75,7 @@ const isLoading = ref(true);
 const isLoginSuccess = ref(false);
 const userData = ref(null);
 const errorMessage = ref('');
-const userType = ref('');
+const userType = ref();
 const userId = ref('');
 const nickname = ref('');
 const profilePhotoUrl = ref('');
@@ -111,25 +110,26 @@ async function trylogin() {
     try {
         const response = await loginApi(userdata);
         const { code, data, msg } = response.data;
+        //const{expiration,user}=data
         if (code === 200 && msg === 'success') {
             isLoginSuccess.value = true;
-            userData.value = data;
-            userType.value = data.user_type;
-            userId.value = data.user_id;
-            nickname.value = data.nickname;
-            profilePhotoUrl.value = data.photoUrl;
+            userData.value = data.user;
+            userType.value = data.user.user_type;
+            userId.value = data.user.user_id;
+            nickname.value = data.user.nickname;
+            profilePhotoUrl.value = data.user.photoUrl;
 
             globalStore.changeUserId(userId);
-            globalStore.changeUserType(data.user_type);
-            globalStore.changeNickname(data.nickname);
-            globalStore.changeProfilePhotoUrl(data.photoUrl);
+            globalStore.changeUserType(data.user.user_type);
+            globalStore.changeNickname(data.user.nickname);
+            globalStore.changeProfilePhotoUrl(data.user.photoUrl);
             globalStore.GetToken(data.token);
 
             localStorage.setItem('userInfo', JSON.stringify({
-                userId: data.user_id,
-                userType: data.user_type,
-                nickname: data.nickname,
-                profilePhotoUrl: data.photoUrl,
+                userId: data.user.user_id,
+                userType: data.user.user_type,
+                nickname: data.user.nickname,
+                profilePhotoUrl: data.user.photoUrl,
                 token: data.token
             }));
         } else {
@@ -145,35 +145,6 @@ async function trylogin() {
     } finally {
         isLoading.value = false;
     }
-
-    /*axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
-        .then(response => {
-            const { code, data, msg } = response.data;
-            if (code === 200 && msg === 'success') {
-                isLoginSuccess.value = true;
-                userData.value = data;
-                userType.value = data.user_type;
-                userId.value = data.user_id;
-                nickname.value = data.nickname;
-                profilePhotoUrl.value = data.photoUrl;
-
-                globalStore.changeUserId(userId);
-                globalStore.changeUserType(data.user_type);
-                globalStore.changeNickname(data.nickname);
-                globalStore.changeProfilePhotoUrl(data.photoUrl);
-            } else {
-                errorMessage.value = msg || '登录失败，请重试';
-            }
-        }).catch(error => {
-            if (error.response) {
-                errorMessage.value = `请求错误: ${error.response.data?.msg || '服务器异常'}`;
-            } else {
-                errorMessage.value = '网络错误，无法连接到服务器';
-            }
-            console.error('登录请求失败:', error);
-        }).finally(() => {
-            isLoading.value = false;
-        });*/
 }
 
 
@@ -208,7 +179,7 @@ function redirectByUserType(userType) {
         case 2:
             goToSuperAdminHome();
             break;
-        case 3:
+        case "STUDENT":
             goToStudentmain();
             break;
         default:

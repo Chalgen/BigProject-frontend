@@ -1,19 +1,22 @@
 <template scoped>
   <div class="container">
-    <h2 class="title">学生服务平台[普通管理员]</h2>
+    <div class="title">
+      <h1>学生服务平台[普通管理员]</h1>
+
+      <div class="user-message">
+        <el-avator :src="globalStore.profilePhotoUrl"></el-avator>
+        <img :src="globalStore.profilePhotoUrl" class="profile-photo">
+        <h2>{{ globalStore.nickname }}</h2>
+      </div>
+    </div>
 
     <div class="navigate">
-
-    <RouterLink :to="{ name: 'GeneralAdminModify' }">修改个人信息</RouterLink>
-    <RouterLink :to="{ name: 'GeneralAdminCheck' }">查看我解决的反馈</RouterLink>
-    <RouterLink :to="{ name: 'GeneralAdminView' }">浏览所有反馈</RouterLink>
-    
-      
-
+      <RouterLink :to="{ name: 'GeneralAdminModify' }">修改个人信息</RouterLink>
+      <RouterLink :to="{ name: 'GeneralAdminCheck' }">查看我解决的反馈</RouterLink>
+      <RouterLink :to="{ name: 'GeneralAdminView' }">浏览所有反馈</RouterLink>
     </div>
 
     <div class="main-content">
-      <!--主要内容-->
       <RouterView></RouterView>
     </div>
   </div>
@@ -60,7 +63,8 @@ const globalStore = useGlobalStore()
   border-bottom: 1px solid #e5e7eb;
   position: sticky;
   top: 0;
-  z-index: 10; /* 确保导航栏在内容上方 */
+  z-index: 10;
+  /* 确保导航栏在内容上方 */
   flex-wrap: wrap;
 }
 
@@ -89,7 +93,8 @@ const globalStore = useGlobalStore()
   flex: 1;
   max-width: 1200px;
   width: 100%;
-  margin: 1.5rem auto; /* 顶部留出空间，避免贴近导航栏 */
+  margin: 1.5rem auto;
+  /* 顶部留出空间，避免贴近导航栏 */
   padding: 0 1rem;
   box-sizing: border-box;
   border: black 5px;
@@ -103,7 +108,8 @@ router-view {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-height: 400px; /* 确保内容区域有足够高度 */
+  min-height: 400px;
+  /* 确保内容区域有足够高度 */
 }
 
 @media (max-width: 768px) {
@@ -111,23 +117,23 @@ router-view {
     font-size: 1.5rem;
     padding: 1.2rem 0;
   }
-  
+
   .navigate {
     gap: 0.5rem;
     padding: 0.8rem;
   }
-  
+
   .navigate router-link {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
     width: calc(50% - 0.5rem);
     text-align: center;
   }
-  
+
   .main-content {
     margin: 1rem auto;
   }
-  
+
   router-view {
     padding: 1rem;
     min-height: 300px;

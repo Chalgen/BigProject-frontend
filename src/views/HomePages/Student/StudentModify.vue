@@ -8,18 +8,19 @@
       <div class="check-left">
         <div class="check-leftin">
           <div class="rename">
-            <div><span>修改昵称：</span><input type="text" v-model="rename" id="account-input"></div>
+            <div><span>修改昵称：</span><input type="text" v-model="rename" id="account-input"
+                :placeholder="globalStore.nickname"></div>
+          </div>
+          <div class="contact-container">
+            <div><span>&#12288;手机号：</span><input type="text" v-model="rephoneNumber" class="password-input"></div>
+            <div><span>&#12288;&#12288;邮箱：</span><input type="text" v-model="reemailAddress"
+                class="confirm-password-input"></div>
           </div>
           <div class="repassword">
-            <div><span>修改密码：</span><input type="password" v-model="password" class="password-input"></div>
+            <div><span>修改密码：</span><input type="password" v-model="repassword" class="password-input"></div>
 
             <div><span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
             </div>
-          </div>
-          <div class="contact-container">
-            <div><span>&#12288;手机号：</span><input type="text" v-model="phoneNumber" class="password-input"></div>
-            <div><span>&#12288;&#12288;邮箱：</span><input type="text" v-model="emailAddress"
-                class="confirm-password-input"></div>
           </div>
           <div class="logout-container">
             <button @click="isCheck = true" class="check-post">提交修改</button>
@@ -37,11 +38,17 @@
 
         <div class="photo-poster">
           <span class="photo-text">此处上传新头像：</span>
-          <input type="file" accept="image/*" @change="sender" class="post-input"></input>
-          <!--<button @click="uploadPhoto":disabled="!selected"></button>-->
+
+          <!--<input type="file" accept="image/*" @change="sender" class="post-input"></input><button @click="uploadPhoto":disabled="!selected"></button>
+          <button @click="uploadPhoto()">上传新头像</button>-->
+          <el-upload :action="false" :http-request="handleUpload" :limit="1" list-type="picture-card"
+            :on-exceed="() => ElMessage.warning('仅支持单张图片')">
+            <el-icon>
+              <Plus />
+            </el-icon>
+          </el-upload>
         </div>
       </div>
-
     </div>
 
 
@@ -82,6 +89,8 @@
 //import()
 import { useRouter } from 'vue-router';
 import { useGlobalStore } from '@/store/global'
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance } from 'vue';
 import axios from "axios";
@@ -93,13 +102,13 @@ const isCheck = ref(false);
 const confirmPopup = ref(false)
 
 const rename = ref()
-const password = ref()
+const repassword = ref()
 const confirmpassword = ref()
-const phoneNumber = ref()
-const emailAddress = ref()
+const rephoneNumber = ref()
+const reemailAddress = ref()
 
 const nickname = ref('')
-nickname.value = globalStore.nickname.value;
+//nickname.value = globalStore.nickname.value;
 const profilePhotoUrl = ref('')
 const PopupMessage = ref('')
 
@@ -110,9 +119,9 @@ const goToLogin = () => {
 async function reviseMessage() {
   const reviseData = {
     new_nickname: rename.value,
-    new_password: password.value,
-    new_phoneNumber: phoneNumber.value,
-    new_emailAddress: emailAddress.value,
+    new_password: repassword.value,
+    new_phoneNumber: rephoneNumber.value,
+    new_emailAddress: reemailAddress.value,
   }
   try {
     const response = await ChangeUserInfoApi(reviseData);
@@ -131,7 +140,28 @@ async function reviseMessage() {
   }
 }
 
+const handleUpload = async ({ file }) => {
+  const formData = new FormData()
+  formData.append('image', file)
+  try {
+    const response = await ChangeProfilePhotoApi(formData)
+    const { code, msg, data } = response.data
 
+    if (code === 200 && msg === 'success') {
+      ElMessage.success('上传成功')
+      globalStore.changeProfilePhotoUrl(data.photoUrl)
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+      if (userInfo) {
+        userInfo.profilePhotoUrl = data.photoUrl
+        localStorage.setItem('userInfo', JSON.stringify(userInfo))
+      }
+    } else {
+      ElMessage.error(msg || '上传失败')
+    }
+  } catch (error) {
+    ElMessage.error('上传失败：' + (error.response?.data?.msg || '网络错误'))
+  }
+}
 
 </script>
 

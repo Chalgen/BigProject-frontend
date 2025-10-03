@@ -11,21 +11,6 @@
 
     <div class="title">
       <h1>学生服务平台[学生端]</h1>
-      <!--
-      <div class="user-message">
-        <div class="photo-container">
-          <el-avator src="globalStore.profilePhotoUrl"></el-avator>
-          <img
-          :src="globalStore.profilePhotoUrl"
-          class="profile-photo">
-        </div>
-        <div><h2>{{globalStore.nickname}}</h2></div>
-      </div>
-      <el-row>
-        <el-cal push="10">
-          <h2>{{globalStore.nickname}}</h2>
-        </el-cal>
-      </el-row>-->
 
       <div class="user-message">
         <el-avator :src="globalStore.profilePhotoUrl"></el-avator>

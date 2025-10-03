@@ -20,39 +20,83 @@
     </div>
 
     <div class="items">
-      <div v-for="item in filteredItems" :key="item.id" class="item">
+      <!--<div v-for="item in filteredItems" :key="item.feedback_id" class="item">-->
+      <div v-for="item in posts" :key="item.feedback_id" class="item">
         <h2>{{ item.title }}</h2>
-        <h6>{{ item.tag }} {{ item.isSolved ? "已解决" : "未解决" }}</h6><!--后续可以通过整个页面可视化信息显示解决状态-->
-        <button @click="openContent(item.id)">进入反馈详情>>></button>
+        <h6>{{ codeToTagMap[item.feedback_type] }} {{ codeToStatusMap[item.feedback_status] }}</h6>
+        <!--{{ item.isSolved ? "已解决" : "未解决" }}后续可以通过整个页面可视化信息显示解决状态-->
+        <button @click="openContent(item.feedback_id)">进入反馈详情>>></button>
 
       </div>
-    </div>
-    <div v-if="openModal == true" class="content-background">
-      <div class="content-container">
-        <div class="title-popup">
-          <h1>{{ showPost.title }}</h1>
-          <h5 class="show-message">#{{ showPost.tag }}&#12288;#{{ showPost.isSolved ? "已解决" : "未解决" }}</h5>
-        </div>
-        <div class="info-popup">
-          <!-- 后续可以通过整个页面可视化信息显示解决状态-->
-        </div>
-        <div class="content-popup">
-          {{ showPost.content }}
-        </div>
-        <div class="rate-popup">
-          <el-rate v-model="rating"></el-rate>
-          <span>评分：{{ rating }}</span>
-        </div>
-        <div class="comment-area">
-          <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
-          <button @click="sentComment()">发送评论</button>
-        </div>
-        <div class="close-popup">
-          <button @click="openModal = false" class="close-popup-button">关闭反馈</button>
-        </div>
-      </div>
+
 
     </div>
+  </div>
+  <div v-if="openModal == true" class="content-background">
+    <div class="content-container">
+      <div class="title-popup">
+        <h1>{{ showPost.title }}</h1>
+        <h5 class="show-message">#{{ codeToTagMap[showPost.feedback_type] }}&#12288;#{{
+          codeToStatusMap[showPost.feedback_status] }}</h5>
+      </div>
+      <div class="info-popup">
+        <!-- 后续可以通过整个页面可视化信息显示解决状态-->
+      </div>
+      <div class="content-popup">
+        {{ showPost.content }}
+      </div>
+      <div class="buttons">
+        <el-button type="primary" @click="openComment = true">查看评论</el-button>
+        <el-button type="primary" @click="viewAttach = true">查看附件</el-button>
+        <!--<el-button type="primary" @click="sentAttach = true">发送附件</el-button>-->
+      </div>
+      <div class="rate-popup">
+        <el-rate v-model="rating"></el-rate>
+        <span>评分：{{ rating }}</span>
+        <el-button @click="updateRating()">提交评分</el-button>
+      </div>
+      <div class="comment-area">
+        <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
+        <button @click="sentComment()">发送评论</button>
+      </div>
+      <div class="close-popup">
+        <button @click="openModal = false" class="close-popup-button">关闭反馈</button>
+      </div>
+    </div>
+    <el-dialog title="评论展示" v-model="openComment" :width="'70%'" :z-index='4000' :align-center="true">
+      <div>
+        <div v-if="showPostComment.length == 0">暂无评论</div>
+        <div v-else>
+          <div v-for="i in showPostComment">
+            {{ i.nickname }}:{{ i.content }}
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog title="附件展示" v-model="viewAttach" :width="'70%'" :z-index='4000' :align-center="true">
+      <div>
+        <div v-if="showPostAttach.length == 0">暂无附件</div>
+        <div v-else>
+          <div v-for="i in showPostAttach">
+            <img :src="i.attachPhotoURL" class="profile-photo">
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog title="上传附件" v-model="sentAttach" :width="'70%'" :z-index='4000' :align-center="true">
+      <span class="photo-text">此处上传附件照片：</span>
+
+      <!--<input type="file" accept="image/*" @change="sender" class="post-input"></input><button @click="uploadPhoto":disabled="!selected"></button>
+          <button @click="uploadPhoto()">上传新头像</button>-->
+      <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
+        :on-exceed="() => ElMessage.warning('仅支持单张图片')">
+        <el-icon>
+          <Plus />
+        </el-icon>
+      </el-upload>
+    </el-dialog>
+
+
   </div>
 </template>
 
@@ -63,14 +107,40 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { StudentGetPostsApi } from '@/api/user';
+import { StudentGetPostsApi, updateRatingApi } from '@/api/user';
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
 
 const openModal = ref(false)
 const showModal = ref(false)
+const openComment = ref(false)
+const viewAttach = ref(false)
+const sentAttach = ref(false)
 
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"])
+const codeToTagMap = {
+  //'div': 1,
+  1000: "意见与建议",
+  1001: "其他",
+
+  2001: "教学设施报修",
+  2002: "公共设施报修",
+
+  3000: "校园网服务",
+  3001: "食堂餐饮问题",
+  3002: "校园环境问题",
+  3003: "校园安全问题",
+}
+const codeToStatusMap = {
+  0: "待处理",
+  1: "处理中",
+  2: "已解决",
+  3: "待审核垃圾信息",
+  4: "已确认垃圾信息",
+}
 const selected = ref([])
 
 const rating = ref(5)
@@ -79,30 +149,16 @@ const rating = ref(5)
 const posts = ref([])
 const isChooseAll = ref(false);
 const showPost = ref({ title: '', content: '' })
+const showPostComment = ref([])
+const showPostAttach = ref([])
 const commentContent = ref('');
 
 const isLoading = ref(true);
 const isLoginSuccess = ref(false);
 const userData = ref(null);
 const errorMessage = ref('');
-
-/*const fetchPosts = async () => {
-  try {
-    const response = await axios.get('http://127.0.0.1:4523/m1/7131475-6854516-default/api/posts?apifoxApiId=354486410'/*,
-    {params: {
-      user_id:globalStore.userId
-    }});
-    posts.value = response.data.data.post_list
-    console.log(posts.value)
-    errorMessage.value = null;
-  } catch (err) {
-    errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
-    console.error('获取帖子失败:', err);
-  } finally {
-    isLoading.value = false;
-  }
-  console.log(response.value)
-};*/
+const confirmPopup = ref(false)
+const PopupMessage = ref('')
 
 const fetchPosts = async () => {
   const GetPostMessage = {
@@ -111,14 +167,35 @@ const fetchPosts = async () => {
   }
   try {
     const response = await StudentGetPostsApi(GetPostMessage);
-    posts.value = response.data.data.post_list
-    //console.log(posts.value)
+    posts.value = response.data.data.list
+    console.log(posts)
     errorMessage.value = null;
   } catch (err) {
     errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
     console.error('获取帖子失败:', err);
   } finally {
     isLoading.value = false;
+  }
+}
+async function updateRating() {
+  const ratingData = {
+    target_postid: showPost.feedback_id,
+    rate: rating,
+  }
+  try {
+    const response = await updateRatingApi(ratingData);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      ElMessage.success('上传成功')
+      //PopupMessage.value = "成功评分!";
+    } else {
+      ElMessage.error(msg || '评分失败')
+      //PopupMessage.value = "评分失败！";
+      //errorMessage.value=data.
+    }
+  } catch (error) {
+    ElMessage.error('未连接到服务器：' + (error.response?.data?.msg || '网络错误'))
+    //PopupMessage.value = "未连接到服务器";
   }
 }
 
@@ -158,7 +235,7 @@ const filteredItems = computed(() => {
   return posts.value.filter(item=>selected.value.includes(item.tag));
 });*/
 function openContent(postid) {
-  showPost.value = posts.value.find(item => item.id == postid);
+  showPost.value = posts.value.find(item => item.feedback_id == postid);
   openModal.value = true;
 }
 
