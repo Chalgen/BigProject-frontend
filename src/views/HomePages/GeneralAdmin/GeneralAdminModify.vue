@@ -2,7 +2,7 @@
   <div class="container">
     <h1>修改个人信息</h1>
     <div class="show-name">
-      <h3>学生用户&#12288;{{ globalStore.nickname }}:</h3>
+      <h3>普通管理员&#12288;{{ globalStore.nickname }}:</h3>
     </div>
     <div class="check-container">
       <div class="check-left">
@@ -10,20 +10,27 @@
           <div class="rename">
             <div><span>修改昵称：</span><input type="text" v-model="rename" id="account-input"
                 :placeholder="globalStore.nickname"></div>
+            <!---->
           </div>
           <div class="contact-container">
-            <div><span>&#12288;手机号：</span><input type="text" v-model="rephoneNumber" class="password-input"></div>
+            <div><span>&#12288;手机号：</span><input type="text" v-model="rephoneNumber" class="password-input"
+                :placeholder="globalStore.userPhone"></div>
             <div><span>&#12288;&#12288;邮箱：</span><input type="text" v-model="reemailAddress"
-                class="confirm-password-input"></div>
+                class="confirm-password-input" :placeholder="globalStore.email"></div>
+          </div>
+          <div class="button-container">
+            <button @click="isCheckMessage = true" class="checkMessgae-post">修改用户信息</button>
           </div>
           <div class="repassword">
-            <div><span>修改密码：</span><input type="password" v-model="repassword" class="password-input"></div>
-
-            <div><span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
+            <div><span>&#12288;原密码：</span><input type="password" v-model="oldpassword" class="oldpassword-input"></div>
+            <div><span>修改密码：</span><input type="password" v-model="newpassword" class="password-input"
+                :placeholder="'密码长度应在7-15位之间'"></div>
+            <div><span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input"
+                :placeholder="'密码长度应在7-15位之间'">
             </div>
           </div>
-          <div class="logout-container">
-            <button @click="isCheck = true" class="check-post">提交修改</button>
+          <div class="button-container">
+            <button @click="isCheck = true" class="checkPassword-post">修改密码</button>
             <button @click="isLogout = true" class="log-out">退出账号</button>
           </div>
         </div>
@@ -65,10 +72,20 @@
 
     <div v-if="isCheck == true" class="logout-popup">
       <div class="logout-popup-box">
-        <div class="logout-title">确认修改账号</div>
+        <div class="logout-title">确认修改密码</div>
+        <div class="logoutbtn-container">
+          <button @click="revisePassword()" class="logout-btns">确定</button>
+          <button @click="isCheck = false" class="logout-btns">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="isCheckMessage == true" class="logout-popup">
+      <div class="logout-popup-box">
+        <div class="logout-title">确认修改个人信息</div>
         <div class="logoutbtn-container">
           <button @click="reviseMessage()" class="logout-btns">确定</button>
-          <button @click="isCheck = false" class="logout-btns">取消</button>
+          <button @click="isCheckMessage = false" class="logout-btns">取消</button>
         </div>
       </div>
     </div>
@@ -77,7 +94,7 @@
       <div class="logout-popup-box">
         <div class="logout-title">{{ PopupMessage }}</div>
         <div class="logoutbtn-container">
-          <button @click="confirmPopup = false, isCheck = false" class="logout-btns">确定</button>
+          <button @click="confirmPopup = false, isCheck = false, isCheckMessage = false" class="logout-btns">确定</button>
         </div>
       </div>
     </div>
@@ -94,15 +111,17 @@ import { ElMessage } from 'element-plus'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance } from 'vue';
 import axios from "axios";
-import { ChangeUserInfoApi } from '@/api/user';
+import { ChangeUserInfoApi, ChangeUserPasswordApi, ChangeProfilePhotoApi } from '@/api/user';
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
 const isLogout = ref(false);
 const isCheck = ref(false);
+const isCheckMessage = ref(false);
 const confirmPopup = ref(false)
 
 const rename = ref()
-const repassword = ref()
+const oldpassword = ref()
+const newpassword = ref()
 const confirmpassword = ref()
 const rephoneNumber = ref()
 const reemailAddress = ref()
@@ -118,13 +137,13 @@ const goToLogin = () => {
 }
 async function reviseMessage() {
   const reviseData = {
-    new_nickname: rename.value,
-    new_password: repassword.value,
-    new_phoneNumber: rephoneNumber.value,
-    new_emailAddress: reemailAddress.value,
+    user_id: globalStore.userId,
+    new_nickname: rename.value || globalStore.nickname,
+    new_phoneNumber: rephoneNumber.value || globalStore.userPhone,
+    new_emailAddress: reemailAddress.value || globalStore.email,
   }
   try {
-    const response = await ChangeUserInfoApi(reviseData);
+    const response = await ChangeUserInfoApi(globalStore.userId, reviseData);
     const { code, data, msg } = response.data;
     if (code == 200 && msg == 'success') {
       confirmPopup.value = true;
@@ -137,6 +156,37 @@ async function reviseMessage() {
   } catch (error) {
     confirmPopup.value = true;
     PopupMessage.value = "未连接到服务器";
+  }
+}
+async function revisePassword() {
+  const reviseData = {
+    user_id: globalStore.userId,
+    password: oldpassword.value,
+    new_password: newpassword.value,
+  }
+  if (confirmpassword.value != newpassword.value) {
+    PopupMessage.value = "两次输入的密码不匹配！";
+    confirmPopup.value = true;
+    return;
+  }
+  if (newpassword.value.length > 15 || newpassword.value.length < 7) {
+    PopupMessage.value = "密码长度应在7-15位之间！";
+    confirmPopup.value = true;
+    return;
+  }
+  try {
+    const response = await ChangeUserPasswordApi(reviseData);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      PopupMessage.value = "修改成功!";
+      confirmPopup.value = true;
+    } else {
+      PopupMessage.value = "修改失败！";
+      confirmPopup.value = true;
+    }
+  } catch (error) {
+    PopupMessage.value = "未连接到服务器";
+    confirmPopup.value = true;
   }
 }
 
@@ -197,7 +247,7 @@ const handleUpload = async ({ file }) => {
         .rename,
         .repassword,
         .contact-container,
-        .logout-container,
+        .button-container,
         .pushchecking {
           display: flex;
           flex-direction: column;

@@ -46,7 +46,7 @@ const globalStore = useGlobalStore()
 
 <style scoped>
 .container {
-  min-height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #e9eff8;
@@ -150,6 +150,7 @@ const globalStore = useGlobalStore()
 }
 
 .main-content {
+  max-height: 100vh;
   flex: 1;
   margin-left: 220px;
   padding: 2rem;
@@ -159,6 +160,7 @@ const globalStore = useGlobalStore()
   bottom: 0;
   left: 0;
   overflow-y: auto;
+  /*overflow-y: auto;*/
 }
 
 .main-content>>>.view-container {

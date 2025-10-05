@@ -30,11 +30,11 @@
             <div v-if="isLoginSuccess" class="success-message">
                 <h2>登录成功</h2>
                 <div class="user-info">
-                    <div v-if="userType === 1">
+                    <div v-if="userType == 'ADMIN'">
                         <p>用户编号：{{ userData.user_id }}</p>
                         <p>普通管理员</p>
                     </div>
-                    <div v-else-if="userType === 2">
+                    <div v-else-if="userType == 'SUPERADMIN'">
                         <p>用户编号：{{ userData.user_id }}</p>
                         <p>超级管理员</p>
                     </div>
@@ -103,10 +103,6 @@ async function trylogin() {
         isLoading.value = false;
         return;
     }
-    //baseApi.value=import.meta.env.VITE_API_BASE_URL
-    //const encodedApi = encodeURIComponent(baseApi);
-    //axios.post( `${baseApi}/351321866`, userdata)
-    //axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351275377', userdata)
     try {
         const response = await loginApi(userdata);
         const { code, data, msg } = response.data;
@@ -124,13 +120,17 @@ async function trylogin() {
             globalStore.changeNickname(data.user.nickname);
             globalStore.changeProfilePhotoUrl(data.user.photoUrl);
             globalStore.GetToken(data.token);
+            globalStore.changeEmail(data.user.email);
+            globalStore.changeUserPhone(data.user.userPhone);
 
             localStorage.setItem('userInfo', JSON.stringify({
                 userId: data.user.user_id,
                 userType: data.user.user_type,
                 nickname: data.user.nickname,
                 profilePhotoUrl: data.user.photoUrl,
-                token: data.token
+                token: data.token,
+                email: data.user.email,
+                userPhone: data.user.userPhone,
             }));
         } else {
             errorMessage.value = msg || '登录失败，请重试';
@@ -173,10 +173,10 @@ const gotoRegister = () => {
 
 function redirectByUserType(userType) {
     switch (userType) {
-        case 1:
+        case "ADMIN":
             goToGeneralAdminHome();
             break;
-        case 2:
+        case "SUPERADMIN":
             goToSuperAdminHome();
             break;
         case "STUDENT":

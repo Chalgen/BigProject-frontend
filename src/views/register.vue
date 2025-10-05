@@ -3,19 +3,20 @@
     <div class="register-container">
       <div class="welcome">欢迎注册</div>
       <div class="username">
-        <span>注册账号：</span><input type="text" v-model="username" id="account-input">
+        <span>用户名：</span><input type="text" v-model="username" id="account-input" :placeholder="'请输入2-12位用户名'">
       </div>
       <div class="nickname">
-        <span>注册昵称：</span><input type="text" v-model="nickname" id="account-input">
+        <span>昵称：</span><input type="text" v-model="nickname" id="account-input" :placeholder="'请输入2-12位昵称'">
       </div>
       <div class="email">
-        <span>注册邮箱：</span><input type="text" v-model="email" id="email-input">
+        <span>邮箱：</span><input type="text" v-model="email" id="email-input" :placeholder="'请输入合法邮箱名称'">
       </div>
       <div class="password">
-        <span>注册密码：</span><input type="password" v-model="password" class="password-input">
+        <span>密码：</span><input type="password" v-model="password" class="password-input" :placeholder="'密码长度应在7-15位之间'">
       </div>
       <div class="confirm-password">
-        <span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
+        <span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input"
+          :placeholder="'密码长度应在7-15位之间'">
       </div>
 
       <div class="tryregister-button">
@@ -41,6 +42,16 @@
       </div>
       <div v-else class="fail-message">
         注册失败
+      </div>
+
+      <!---->
+      <div v-if="confirmPopup == true" class="logout-popup">
+        <div class="logout-popup-box">
+          <div class="logout-title">{{ PopupMessage }}</div>
+          <div class="logoutbtn-container">
+            <button @click="confirmPopup = false"> 确定</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -73,14 +84,30 @@ const userData = ref(null);
 const errorMessage = ref('');
 const userType = ref("");
 const RegisterStatus = ref(0);
+const PopupMessage = ref('')
+const confirmPopup = ref(false);
 const returnLogin = () => {
   router.push('/login')
 }
 async function tryRegister() {
+  if (username.value.length < 2 || username.value.length > 12) {
+    PopupMessage.value = "请输入2-12位用户名!";
+    confirmPopup.value = true;
+    return;
+  }
+  if (nickname.value.length < 2 || nickname.value.length > 12) {
+    PopupMessage.value = "请输入2-12位昵称!";
+    confirmPopup.value = true;
+    return;
+  }
   if (password.value != confirmpassword.value) {
-
-
-    RegisterStatus.value = 2;
+    PopupMessage.value = "两次输入的密码不匹配！";
+    confirmPopup.value = true;
+    return;
+  }
+  if (password.value.length > 15 || password.value.length < 7) {
+    PopupMessage.value = "密码长度应在7-15位之间！";
+    confirmPopup.value = true;
     return;
   }
   const userdata = {
@@ -96,14 +123,12 @@ async function tryRegister() {
       isLoginSuccess.value = true;
       userData.value = data;
       userType.value = data.user.user_type;
-      //userId.value = data.user.user_id;
       nickname.value = data.user.nickname;
-      //profilePhotoUrl.value = data.user.photoUrl;
 
-      //globalStore.changeUserId(userId);
       globalStore.changeUserType(data.user.user_type);
       globalStore.changeNickname(data.user.nickname);
       globalStore.changeProfilePhotoUrl(data.user.photoUrl);
+      globalStore.changeEmail(data.user.email)
       globalStore.GetToken(data.token);
 
       localStorage.setItem('userInfo', JSON.stringify({
@@ -127,33 +152,6 @@ async function tryRegister() {
   } finally {
     isLoading.value = false;
   }
-  /*axios.post('http://127.0.0.1:4523/m2/7131475-6854516-default/351321866', userdata)
-      .then(response => {
-          const { code, data, msg } = response.data;
-
-          if (msg === 'success' && code === 200) {
-            isLoginSuccess.value = true;
-            userData.value = data; 
-            userType.value = data.user_type;
-            //globalStore.changeUserId(data.user_id);
-            //globalStore.changeUserType(data.user_type);
-            //redirectByUserType(data.user_type);
-            globalStore.changeUserType(3);
-            trylogin();
-          } else {
-              errorMessage.value = msg || '登录失败，请重试';//msg有值时输出msg e.g.“用户不存在”
-          }
-      }).catch(error => {
-          if (error.response) {
-              errorMessage.value = `请求错误: ${error.response.data?.msg || '服务器异常'}`;
-          } else {
-              errorMessage.value = '网络错误，无法连接到服务器';
-          }
-          console.error('注册请求失败:', error);
-      }).finally(isLoading.value = false);*/
-
-
-
 }
 
 const goToStudentmain = () => {//必须import use router 、const router、const goto=()=>之后才能跳转?
@@ -174,6 +172,53 @@ function trylogin() {
   background-color: lightblue;
   padding: 20px;
   font-family: "Microsoft YaHei", sans-serif;
+}
+
+.logout-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+
+  .logout-popup-box {
+    background-color: #fff;
+    width: 100%;
+    max-width: 170px;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+
+    .logout-title {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .logoutbtn-container {
+      display: flex;
+      justify-content: space-around;
+      gap: 40px;
+
+      .logout-btns {
+        width: 80px;
+        height: 35px;
+        font-size: 14px;
+        border-radius: 8px;
+      }
+    }
+  }
 }
 
 .register-container {

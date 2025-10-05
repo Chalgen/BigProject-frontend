@@ -40,7 +40,7 @@
       <!--<input type="file" accept="image/*" @change="sender" class="post-input"></input><button @click="uploadPhoto":disabled="!selected"></button>
           <button @click="uploadPhoto()">上传新头像</button>-->
       <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
-        :on-exceed="() => ElMessage.warning('仅支持单张图片')">
+        :on-exceed="() => ElMessage.warning('仅支持3张图片')">
         <el-icon>
           <Plus />
         </el-icon>
@@ -54,7 +54,7 @@ import { useGlobalStore } from '@/store/global'
 import { ref, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router'
 import axios from "axios";
-import { SentPostApi } from '@/api/user';
+import { SentPostApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -95,8 +95,6 @@ const content = ref();
 const user_id = globalStore.userId;
 
 async function post() {
-
-
   const postingData = {
     title: title.value,
     content: content.value,
@@ -108,16 +106,6 @@ async function post() {
   }
   title.value = '';
   content.value = '';
-  //sentSuccessPopup.value = true
-
-  /*axios.post('http://127.0.0.1:4523/m1/7074224-6795300-default/api/student/post', postingData).then(response => {
-    const { code, data, msg } = response.data;
-    if(code==200&&msg=='success'){
-      sentSuccessPopup.value=true
-    }else{
-
-    }
-  })*/
   try {
     const response = await SentPostApi(postingData);
     const { code, data, msg } = response.data;

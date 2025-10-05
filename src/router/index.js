@@ -21,7 +21,7 @@ const routes = [
     path: "/HomePages/Student/StudentHome",//网页path
     name: 'StudentHome',
     component: () => import("@/views/HomePages/Student/StudentHome.vue"),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, allowedRoles: ['STUDENT', 'SUPERADMIN'], },
     children: [
       //嵌套更深的路由
       {
@@ -29,19 +29,19 @@ const routes = [
         name: 'StudentView',
         component: () => import("@/views/HomePages/Student/StudentView.vue"),
         //component: () => import('@/views/HomePages/StudentHome/StudentView.vue')
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, allowedRoles: ['STUDENT', 'SUPERADMIN'], },
       },
       {
         path: 'StudentModify',
         name: 'StudentModify',
         component: () => import("@/views/HomePages/Student/StudentModify.vue"),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, allowedRoles: ['STUDENT', 'SUPERADMIN'], },
       },
       {
         path: 'StudentPost',
         name: 'StudentPost',
         component: () => import("@/views/HomePages/Student/StudentPost.vue"),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, allowedRoles: ['STUDENT', 'SUPERADMIN'], },
       },
     ]
   },
@@ -52,26 +52,28 @@ const routes = [
     path: "/HomePages/GeneralAdmin/GeneralAdminHome",
     //name:Homepage,用home就崩了？？
     component: () => import("@/views/HomePages/GeneralAdmin/GeneralAdminHome.vue"),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, allowedRoles: ['ADMIN', 'SUPERADMIN'], },
+    //roles: ['ADMIN', 'SUPERADMIN'],
+
     children: [
       //嵌套更深的路由
       {
         path: 'GeneralAdminView',
         name: 'GeneralAdminView',
         component: () => import("@/views/HomePages/GeneralAdmin/GeneralAdminView.vue"),
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, allowedRoles: ['ADMIN', 'SUPERADMIN'], },
       },
       {
         path: 'GeneralAdminCheck',
         name: 'GeneralAdminCheck',
         component: () => import("@/views/HomePages/GeneralAdmin/GeneralAdminCheck.vue"),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, allowedRoles: ['ADMIN', 'SUPERADMIN'], },
       },
       {
         path: 'GeneralAdminModify',
         name: 'GeneralAdminModify',
         component: () => import("@/views/HomePages/GeneralAdmin/GeneralAdminModify.vue"),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, allowedRoles: ['ADMIN', 'SUPERADMIN'], },
       },
     ]
   },
@@ -81,27 +83,27 @@ const routes = [
   {
     path: "/HomePages/SuperAdmin/SuperAdminHome",
     component: () => import("@/views/HomePages/SuperAdmin/SuperAdminHome.vue"),
-    //meta: { requiresAuth: true } 
+    meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
+
     children: [
       //嵌套更深的路由
       {
         path: 'SuperAdminView',
         name: 'SuperAdminView',
         component: () => import("@/views/HomePages/SuperAdmin/SuperAdminView.vue"),
-        //meta: { requiresAuth: true }
+        meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
       },
       {
         path: 'SuperAdminCRUD',
         name: 'SuperAdminCRUD',
         component: () => import("@/views/HomePages/SuperAdmin/SuperAdminCRUD.vue"),
-        //meta: { requiresAuth: true }
-
+        meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
       },
       {
         path: 'SuperAdminCheck',
         name: 'SuperAdminCheck',
         component: () => import("@/views/HomePages/SuperAdmin/SuperAdminCheck.vue"),
-        //meta: { requiresAuth: true }
+        meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
       },
     ]
   },
@@ -128,17 +130,46 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach((to, from, next) => {
+  console.log("in")
+  const globalStore = useGlobalStore()
   if (to.meta.requiresAuth) {
-    const globalStore = useGlobalStore()
     //if (globalStore.userType) {
     if (globalStore.token) {
-      next()
+      console.log('有token')
+      if (to.meta.allowedRoles && to.meta.allowedRoles.length) {
+        console.log('需要验证角色')
+        if (to.meta.allowedRoles.includes(globalStore.userType)) {
+          console.log("!11111111")
+          console.log(globalStore.userType)
+          next()
+        } else {
+          alert('没有访问权限，请联系管理员')
+          switch (globalStore.userType) {
+            case 'STUDENT':
+              next('/HomePages/Student/StudentHome')
+              break
+            case 'ADMIN':
+              next('/HomePages/GeneralAdmin/GeneralAdminHome')
+              break
+            case 'SUPERADMIN':
+              next('/HomePages/SuperAdmin/SuperAdminHome')
+              break
+            default:
+              next('/login')
+          }
+        }
+      } else {
+        next()
+      }
     } else {
       next('/login')
     }
   } else {
     next()
   }
+
+  // 已登录但需要角色校验的情况
+
 })
 
 

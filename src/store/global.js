@@ -12,6 +12,8 @@ export const useGlobalStore = defineStore('global', {
       nickname: parsedInfo.nickname || null,
       profilePhotoUrl: parsedInfo.profilePhotoUrl || null,
       token: parsedInfo.token || null,
+      email: parsedInfo.email || null,
+      userPhone: parsedInfo.userPhone || null,
     }
   },
   actions: {
@@ -27,6 +29,12 @@ export const useGlobalStore = defineStore('global', {
     changeProfilePhotoUrl(url) {
       this.profilePhotoUrl = url
     },
+    changeEmail(address) {
+      this.email = address
+    },
+    changeUserPhone(number) {
+      this.userPhone = number
+    },
     GetToken(token) {
       this.token = token
     },
@@ -36,6 +44,8 @@ export const useGlobalStore = defineStore('global', {
       this.nickname = null
       this.profilePhotoUrl = null
       this.token = null;
+      this.email = null;
+      this.userPhone = null;
       localStorage.removeItem('userInfo');
     }
   }

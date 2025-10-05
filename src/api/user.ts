@@ -15,7 +15,10 @@ export const loginApi = (params: LoginParams) => {
     "headers": {//通过headers请求头的方式告知服务器 返回数据 是 JSON形式
       "Content-Type": "application/json",
     },
-    url: "/api/auth/login",//指定host之后的port
+    url: "/api/auth/login",
+    //url: "/api/auth/login",
+
+    //指定host之后的port
     //e.g. https://www.doubao.com/chat中
     //https是协议头Protocol; doubao.com是host域名
     method: "post",//等价于axios.post
@@ -24,11 +27,12 @@ export const loginApi = (params: LoginParams) => {
 }
 
 export const registerApi = (data: FormData) => {
-  const globalStore = useGlobalStore();
-  const token = globalStore.token;
+  //const globalStore = useGlobalStore();
+  //const token = globalStore.token;
   return request({
     "headers": {
       //"Authorization": 'Bearer ' + token,
+      "Content-Type": "application/json",
     },
     url: "/api/auth/register",
     method: "post",
@@ -40,32 +44,8 @@ export interface StudentGetPostParams {
   user_id: number;
   //tags:string[];
 }
-/*export const StudentGetPostsApi = (params: StudentGetPostParams) => {
-  const globalStore = useGlobalStore();
-  const token = globalStore.token;
-  return request({
-    "headers": {
-      "Content-Type": "application/json",
-      'x-api-key': token,
-    },
-    url: "/api/user/getposts",
-    method: "get",
-    data: params,
-  })
-}*/
 
-export const StudentGetPostsApi = (data: FormData) => {
-  const globalStore = useGlobalStore();
-  const token = globalStore.token;
-  return request({
-    "headers": {
-      "Authorization": 'Bearer ' + token,
-    },
-    url: "/api/feedback",
-    method: "get",
-    data: data,
-  })
-}
+
 
 export interface PostMessage {
   title: string;
@@ -74,56 +54,33 @@ export interface PostMessage {
   isUrgent: boolean;
   isAnonymity: boolean;
 }
-/*export const SentPost = (params: PostMessage) => {
-  const globalStore = useGlobalStore();
-  const token = globalStore.token;
-  return request({
-    "headers": {
-      "Content-Type": "application/json",
-      'x-api-key': token,
-    },
-    url: "/api/user/sentpost",
-    method: "post",
-    data: params,
-  })
-}*/
 
-export const SentPostApi = (data: FormData) => {
+
+export const ChangeUserInfoApi = (id: string | number, data: FormData) => {
   const globalStore = useGlobalStore();
   const token = globalStore.token;
   return request({
     "headers": {
       "Authorization": 'Bearer ' + token,
     },
-    url: "/api/feedback/publish",
+    url: `/api/user/${id}/profile`,
     method: "post",
     data: data,
   })
 }
-export const ChangeUserInfoApi = (data: FormData) => {
+export const ChangeUserPasswordApi = (data: FormData) => {
   const globalStore = useGlobalStore();
   const token = globalStore.token;
   return request({
     "headers": {
       "Authorization": 'Bearer ' + token,
     },
-    url: "/api/user/sentpost",
+    url: "/api/auth/reset-password",
     method: "post",
     data: data,
   })
 }
-export const MakeCommentApi = (data: FormData) => {
-  const globalStore = useGlobalStore();
-  const token = globalStore.token;
-  return request({
-    "headers": {
-      "Authorization": 'Bearer ' + token,
-    },
-    url: "/api/user/sentcomment",
-    method: "post",
-    data: data,
-  })
-}
+
 export const ChangeProfilePhotoApi = (data: FormData) => {
   const globalStore = useGlobalStore();
   const token = globalStore.token;
@@ -136,27 +93,4 @@ export const ChangeProfilePhotoApi = (data: FormData) => {
     data: data,
   })
 }
-export const FetchAttachApi = (data: FormData) => {
-  const globalStore = useGlobalStore();
-  const token = globalStore.token;
-  return request({
-    "headers": {
-      "Authorization": 'Bearer ' + token,
-    },
-    url: "/api/user/",
-    method: "post",
-    data: data,
-  })
-}
-export const updateRatingApi = (data: FormData) => {
-  const globalStore = useGlobalStore();
-  const token = globalStore.token;
-  return request({
-    "headers": {
-      "Authorization": 'Bearer ' + token,
-    },
-    url: "/api/user/",
-    method: "post",
-    data: data,
-  })
-}
+

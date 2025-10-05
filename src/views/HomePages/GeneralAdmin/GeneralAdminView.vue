@@ -1,10 +1,9 @@
 <template scoped>
   <div class="container">
-    <h1>我的历史反馈</h1>
+    <h1>所有学生反馈</h1>
     <div class="post-settings">
       <button class="select-tag" @click="showModal = true">点击选择标签</button>
     </div>
-
     <div v-if="showModal" class="modal">
       <div class="modal-box">
         <h4>选择标签<button @click="showModal = false"></button></h4>
@@ -14,30 +13,55 @@
             {{ t }}
           </button>
           <button @click="selectall()" :class="{ active: isChooseAll == true }">全选</button>
+          <button @click="selectnull()">全不选</button>
         </div>
         <button @click="showModal = false" class="confirm-btn">确定</button>
       </div>
     </div>
-
     <div class="items">
       <!--<div v-for="item in filteredItems" :key="item.feedback_id" class="item">-->
-      <div v-for="item in posts" :key="item.feedback_id" class="item">
+      <div v-for="item in posts" :key="item.feedback_id"
+        :style="{ color: getColor(item.feedback_status), backgroundColor: getBackgroundColor(item.feedback_status) }"
+        class="item">
         <h2>{{ item.title }}</h2>
-        <h6>{{ codeToTagMap[item.feedback_type] }} {{ codeToStatusMap[item.feedback_status] }}</h6>
+        <h6>#{{ codeToTagMap[item.feedback_type] }} #{{ codeToStatusMap[item.feedback_status] }}</h6>
         <!--{{ item.isSolved ? "已解决" : "未解决" }}后续可以通过整个页面可视化信息显示解决状态-->
+        <h6>{{ item.is_nicked == true ? "匿名" : item.student.username }}</h6>
         <button @click="openContent(item.feedback_id)">进入反馈详情>>></button>
-
       </div>
-
-
     </div>
   </div>
+  <!--查看帖子详情-------------------------------------------------------------------------------------------------------->
   <div v-if="openModal == true" class="content-background">
     <div class="content-container">
       <div class="title-popup">
-        <h1>{{ showPost.title }}</h1>
-        <h5 class="show-message">#{{ codeToTagMap[showPost.feedback_type] }}&#12288;#{{
-          codeToStatusMap[showPost.feedback_status] }}</h5>
+
+        <!--<el-text size="large">
+          <h1>{{ showPost.title }}</h1>
+          <el-text tag="sub" size="large">created_by:{{ showPost.is_nicked == 1 ? "匿名用户" : showPost.student.username
+          }}</el-text>
+        </el-text><div class="head-message">
+          <h1>{{ showPost.title }}</h1>
+          <h4>created_by:{{ showPost.is_nicked == 1 ? "匿名用户" : showPost.student.username }}</h4>
+        </div>-->
+        <div class="head-message">
+          <h1 class="inline-block vertical-align-bottom text-4xl mr-4 mb-0">{{ showPost.title }}</h1>
+        </div>
+        <h4 class="show-message">#{{ codeToTagMap[showPost.feedback_type] }}&#12288;#{{
+          codeToStatusMap[showPost.feedback_status] }}</h4>
+        <div v-if="showPost.feedback_status == 1">
+          <h5>created_by:{{ showPost.is_nicked == 1 ? "匿名用户" :
+            showPost.student.username }}&#12288;&#12288;[处理中]by:</h5>
+        </div>
+        <div v-else-if="showPost.feedback_status == 2">
+          <h5>created_by:{{ showPost.is_nicked == 1 ? "匿名用户" :
+            showPost.student.username }}&#12288;&#12288;[已处理]by:&#12288;&#12288;评分:</h5>
+        </div>
+        <div v-else>
+          <h5>created_by:{{ showPost.is_nicked == 1 ? "匿名用户" :
+            showPost.student.username }}</h5>
+        </div>
+        <h5 class="feedback-time"> 创建时间：{{ showPost.created_at }}&#12288;&#12288;更新时间:{{ showPost.updated_at }}</h5>
       </div>
       <div class="info-popup">
         <!-- 后续可以通过整个页面可视化信息显示解决状态-->
@@ -48,21 +72,15 @@
       <div class="buttons">
         <el-button type="primary" @click="openComment = true">查看评论</el-button>
         <el-button type="primary" @click="viewAttach = true">查看附件</el-button>
-        <!--<el-button type="primary" @click="sentAttach = true">发送附件</el-button>-->
+        <!--<el-button type="primary" @click="receiveFeedback(showPost.feedback_id)">处理反馈</el-button>-->
+        <el-button type="primary" @click="checkFeedback = true">处理反馈</el-button>
       </div>
-      <div class="rate-popup">
-        <el-rate v-model="rating"></el-rate>
-        <span>评分：{{ rating }}</span>
-        <el-button @click="updateRating()">提交评分</el-button>
-      </div>
-      <div class="comment-area">
-        <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
-        <button @click="sentComment()">发送评论</button>
-      </div>
+
       <div class="close-popup">
         <button @click="openModal = false" class="close-popup-button">关闭反馈</button>
       </div>
     </div>
+    <!--el-dialog评论、附件、处理-------------------------------------------------------------------------->
     <el-dialog title="评论展示" v-model="openComment" :width="'70%'" :z-index='4000' :align-center="true">
       <div>
         <div v-if="showPostComment.length == 0">暂无评论</div>
@@ -83,21 +101,29 @@
         </div>
       </div>
     </el-dialog>
-    <el-dialog title="上传附件" v-model="sentAttach" :width="'70%'" :z-index='4000' :align-center="true">
-      <span class="photo-text">此处上传附件照片：</span>
-
-      <!--<input type="file" accept="image/*" @change="sender" class="post-input"></input><button @click="uploadPhoto":disabled="!selected"></button>
-          <button @click="uploadPhoto()">上传新头像</button>-->
-      <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
-        :on-exceed="() => ElMessage.warning('仅支持单张图片')">
-        <el-icon>
-          <Plus />
-        </el-icon>
-      </el-upload>
+    <el-dialog title="处理反馈" v-model="checkFeedback" :width="'70%'" :z-index='4000' :align-center="true"
+      class="check-dialog">
+      <div><el-select v-model="value" placeholder="Select" style="width: 240px">
+          <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select></div>
+      <br></br>
+      <div v-if="value != 0">
+        <div class="comment-area">
+          <input type="text" v-model="commentContent" placeholder="点击输入详细信息..." class="comment-text"></input>
+          <button @click="sentChecking()">发送详情</button>
+        </div>
+      </div>
     </el-dialog>
-
-
   </div>
+  <!--有内容的popup------------------------------------------------------------------------------------------------------->
+  <div v-if="postPopup == true" class="success-background">
+    <div class="success-popup">
+      <h1>{{ PopupMessage }}</h1>
+      <button @click="postPopup = false, checkFeedback = false" class="close-success-popup">确认</button>
+    </div>
+  </div>
+  <el-pagination v-model:current-page="currentPage" :total="total" background layout="prev, pager, next"
+    @current-change="fetchPosts" size="large" />
 </template>
 
 <script setup>
@@ -107,7 +133,7 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { StudentGetPostsApi, updateRatingApi } from '@/api/user';
+import { StudentGetPostsApi, updateRatingApi, receiveFeedbackApi, checkingRequestApi, GetPostsByIdApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -118,14 +144,22 @@ const openModal = ref(false)
 const showModal = ref(false)
 const openComment = ref(false)
 const viewAttach = ref(false)
+const checkFeedback = ref(false);
 const sentAttach = ref(false)
 
+//const currentPage = ref(Number(router.query.page) || 1); // 当前页码
+const pageSize = ref(10);   // 每页条数
+const total = ref(0);       // 总条数
+const posts = ref([]);      // 当前页数据
+
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"])
+const selected = ref([])
 const codeToTagMap = {
   //'div': 1,
   1000: "意见与建议",
   1001: "其他",
 
+  2000: "宿舍设施保修",
   2001: "教学设施报修",
   2002: "公共设施报修",
 
@@ -134,6 +168,16 @@ const codeToTagMap = {
   3002: "校园环境问题",
   3003: "校园安全问题",
 }
+const tagToCodeMap = Object.entries(codeToTagMap).reduce((map, [code, tag]) => {
+  map[tag] = Number(code);
+  return map;
+}, {});
+const selectedCodes = computed(() => {
+  return selected.value
+    .filter(tag => tagToCodeMap.hasOwnProperty(tag))
+    .map(tag => tagToCodeMap[tag]);
+});
+
 const codeToStatusMap = {
   0: "待处理",
   1: "处理中",
@@ -141,12 +185,44 @@ const codeToStatusMap = {
   3: "待审核垃圾信息",
   4: "已确认垃圾信息",
 }
-const selected = ref([])
+const getColor = (val) => {
+  switch (val) {
+    case 0: return '#33CC00'
+    case 1: return '#00CCCC'//湖青色
+    case 2: return '#0066CC'//天蓝色：更黑一点
+    case 3: return '#FF6600'//orange
+    case 4: return '#FF3300'//red
+  }
+}
+const getBackgroundColor = (val) => {
+  if (val == 3) {
+    return '#FFFF00'
+  } else {
+    return 'white'
+  }
+}
+
+const value = ref('')
+const label = ref('')
+
+const options = [
+  {
+    value: '0',
+    label: '撤销处理',
+  },
+  {
+    value: '1',
+    label: '接单',
+  },
+  {
+    value: '3',
+    label: '举报垃圾信息',
+  },
+]
 
 const rating = ref(5)
 
 
-const posts = ref([])
 const isChooseAll = ref(false);
 const showPost = ref({ title: '', content: '' })
 const showPostComment = ref([])
@@ -158,17 +234,15 @@ const isLoginSuccess = ref(false);
 const userData = ref(null);
 const errorMessage = ref('');
 const confirmPopup = ref(false)
+const postPopup = ref(false);
 const PopupMessage = ref('')
-
+const currentPage = ref(1);
 const fetchPosts = async () => {
-  const GetPostMessage = {
-    user_id: globalStore.userId
-    //tags:
-  }
   try {
-    const response = await StudentGetPostsApi(GetPostMessage);
-    posts.value = response.data.data.list
-    console.log(posts)
+    console.log(currentPage)
+    const response = await GetPostsByIdApi(currentPage.value, globalStore.userId);
+    posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
+      console.log(total)
     errorMessage.value = null;
   } catch (err) {
     errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
@@ -177,30 +251,10 @@ const fetchPosts = async () => {
     isLoading.value = false;
   }
 }
-async function updateRating() {
-  const ratingData = {
-    target_postid: showPost.feedback_id,
-    rate: rating,
-  }
-  try {
-    const response = await updateRatingApi(ratingData);
-    const { code, data, msg } = response.data;
-    if (code == 200 && msg == 'success') {
-      ElMessage.success('上传成功')
-      //PopupMessage.value = "成功评分!";
-    } else {
-      ElMessage.error(msg || '评分失败')
-      //PopupMessage.value = "评分失败！";
-      //errorMessage.value=data.
-    }
-  } catch (error) {
-    ElMessage.error('未连接到服务器：' + (error.response?.data?.msg || '网络错误'))
-    //PopupMessage.value = "未连接到服务器";
-  }
-}
 
 // 组件挂载时获取帖子
 onMounted(() => {
+  selectall();
   fetchPosts();
 });
 
@@ -213,59 +267,65 @@ const toggleTag = (tag) => {//维护slected{tags}数组
     selected.value.push(tag)
     if (selected.value === allTags.value) isChooseAll = true;
   }
-  console.log(filteredItems)
+  console.log(selectedCodes)
+  console.log(selected)
 }
 function selectall() {
-  if (!isChooseAll.value) {
-    selected.value = [...allTags.value];
-    isChooseAll, value = true;
-  } else {
-    selected.value = []
-    isChooseAll.value = false;
-  }
-  //selected.value=allTags.value不行：selected会直接和allTag共享内存地址
-  //console.log(selected)
-  //axios.post("http://127.0.0.1:8080/api/logintest",allTags)
+  selected.value = [...allTags.value];
+}
+function selectnull() {
+  selected.value = ['']
 }
 
 const filteredItems = computed(() => {
   return posts.value.filter(item => allTags.value.includes(item.tag));
 });
-/*const filteredItems = computed(() => {
-  return posts.value.filter(item=>selected.value.includes(item.tag));
-});*/
 function openContent(postid) {
   showPost.value = posts.value.find(item => item.feedback_id == postid);
   openModal.value = true;
 }
 
 const user_id = globalStore.userId;
-function sentComment() {
-  const commentData = {
-    content: {
-      comment: commentContent.value,
-    },
-    user_id: user_id,
+async function sentChecking() {
+  const checkingData = {
+    feedback_status: value.value,
+    admin_reply: {
+      content: commentContent.value,
+    }
   }
-  commentContent.value = '';
-  axios.post('', commentData)
+  try {
+    const response = await checkingRequestApi(globalStore.userId, checkingData);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      postPopup.value = true;
+      PopupMessage.value = "成功发送详情!";
+    } else {
+      postPopup.value = true;
+      PopupMessage.value = "详情失败！";
+      //errorMessage.value=data.
+    }
+  } catch (error) {
+    postPopup.value = true;
+    PopupMessage.value = "未连接到服务器";
+  }
 }
-
-
 </script>
 
 <style scoped>
-/*部分ai生成，最后会人力写orz */
-
-/* container下的都是手写 */
 .container {
+
+
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI',
+    Tahoma,
+    Geneva,
+    Verdana,
+    sans-serif;
   gap: 20px;
 
   h1 {
@@ -274,8 +334,6 @@ function sentComment() {
     font-weight: 600;
     font-size: 1.8rem;
     text-align: center;
-    padding-bottom: 0.8rem;
-    border-bottom: 1px solid #f0f0f0;
   }
 
   .post-settings {
@@ -298,6 +356,34 @@ function sentComment() {
 }
 
 /* 标签选择按钮区域样式margin-bottom: 25px;flex-direction:row; */
+
+.success-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+
+  .success-popup {
+    background-color: #fff;
+    width: 100%;
+    max-width: 250px;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+  }
+}
 
 
 
@@ -470,8 +556,6 @@ function sentComment() {
   z-index: 1000;
 
   .content-container {
-    /** */
-
     background-color: #fff;
     width: 100%;
     max-width: 1000px;
@@ -482,16 +566,22 @@ function sentComment() {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     position: relative;
   }
+
+  .check-dialog {
+    gap: 20px;
+  }
 }
 
 
 .title-popup {
-
   color: black;
-  gap: 20px;
-  /*font-size: 1.5rem;
-  font-weight: 600;padding-bottom: 12px;*/
-  border-bottom: 1px solid #eee;
+
+  .head-message {
+    display: flex;
+    flex-direction: row;
+    vertical-align: bottom;
+    justify-content: center;
+  }
 }
 
 
@@ -573,18 +663,7 @@ function sentComment() {
   }
 }
 
-.title-popup {
-  margin-bottom: 1.2rem;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 0.8rem;
-}
 
-.title-popup h1 {
-  font-size: 1.5rem;
-  color: #1f2937;
-  margin: 0;
-  font-weight: 600;
-}
 
 
 .info-popup {
@@ -610,6 +689,7 @@ function sentComment() {
 /* 评论输入区域 */
 .comment-area {
   display: flex;
+  flex-direction: row;
   gap: 0.8rem;
   /* 输入框与按钮间距 */
   margin-bottom: 2rem;
@@ -643,8 +723,8 @@ function sentComment() {
   transition: background-color 0.2s ease;
 }
 
-.comment-area button:hover {
-  background-color: #2563eb;
+.el-pagination {
+  justify-content: center;
 }
 
 .close-popup {
@@ -664,10 +744,7 @@ function sentComment() {
   transition: all 0.2s ease;
 }
 
-.close-popup button:hover {
-  background-color: #e5e7eb;
-  transform: translateY(-1px);
-}
+
 
 
 @media (max-width: 640px) {
@@ -676,9 +753,7 @@ function sentComment() {
     max-height: 85vh;
   }
 
-  .title-popup h1 {
-    font-size: 1.3rem;
-  }
+
 
   .comment-area {
     flex-direction: column;

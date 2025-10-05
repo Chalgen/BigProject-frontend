@@ -20,11 +20,9 @@
     </div>
 
     <div class="items">
-      <!--<div v-for="item in filteredItems" :key="item.feedback_id" class="item">-->
       <div v-for="item in posts" :key="item.feedback_id" class="item">
         <h2>{{ item.title }}</h2>
         <h6>{{ codeToTagMap[item.feedback_type] }} {{ codeToStatusMap[item.feedback_status] }}</h6>
-        <!--{{ item.isSolved ? "已解决" : "未解决" }}后续可以通过整个页面可视化信息显示解决状态-->
         <button @click="openContent(item.feedback_id)">进入反馈详情>>></button>
 
       </div>
@@ -50,15 +48,11 @@
         <el-button type="primary" @click="viewAttach = true">查看附件</el-button>
         <!--<el-button type="primary" @click="sentAttach = true">发送附件</el-button>-->
       </div>
-      <div class="rate-popup">
-        <el-rate v-model="rating"></el-rate>
-        <span>评分：{{ rating }}</span>
-        <el-button @click="updateRating()">提交评分</el-button>
+      <div v-if="showPost.feedback_status == 2">
+        <el-button type="primary" @click="openRating = true">提交评分</el-button>
+        <el-button type="primary" @click="returnComment = true">提交评论</el-button>
       </div>
-      <div class="comment-area">
-        <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
-        <button @click="sentComment()">发送评论</button>
-      </div>
+
       <div class="close-popup">
         <button @click="openModal = false" class="close-popup-button">关闭反馈</button>
       </div>
@@ -83,11 +77,20 @@
         </div>
       </div>
     </el-dialog>
+
+    <el-dialog title="提交评分" v-model="openRating" :width="'70%'" :z-index='4000' :align-center="true">
+      <el-rate v-model="rating"></el-rate>
+      <span>评分：{{ rating }}</span>
+      <el-button @click="updateRating()">提交评分</el-button>
+    </el-dialog>
+    <el-dialog title="提交评论" class="returncomment-container" v-model="returnComment" :width="'70%'" :z-index='4000'
+      :align-center="true">
+      <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
+      <button @click="sentComment()">发送评论</button>
+    </el-dialog>
+
     <el-dialog title="上传附件" v-model="sentAttach" :width="'70%'" :z-index='4000' :align-center="true">
       <span class="photo-text">此处上传附件照片：</span>
-
-      <!--<input type="file" accept="image/*" @change="sender" class="post-input"></input><button @click="uploadPhoto":disabled="!selected"></button>
-          <button @click="uploadPhoto()">上传新头像</button>-->
       <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
         :on-exceed="() => ElMessage.warning('仅支持单张图片')">
         <el-icon>
@@ -107,7 +110,7 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { StudentGetPostsApi, updateRatingApi } from '@/api/user';
+import { StudentGetPostsApi, updateRatingApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -119,6 +122,8 @@ const showModal = ref(false)
 const openComment = ref(false)
 const viewAttach = ref(false)
 const sentAttach = ref(false)
+const returnComment = ref(false);
+const openRating = ref(false);
 
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"])
 const codeToTagMap = {
@@ -167,11 +172,12 @@ const fetchPosts = async () => {
   }
   try {
     const response = await StudentGetPostsApi(GetPostMessage);
+    //response=await axios.get(kjasfasf,GetPostMessage);
     posts.value = response.data.data.list
     console.log(posts)
     errorMessage.value = null;
   } catch (err) {
-    errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
+    errorMessage.value = err.response.data.message || '网络错误，请稍后再试';
     console.error('获取帖子失败:', err);
   } finally {
     isLoading.value = false;
@@ -294,6 +300,11 @@ function sentComment() {
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
+  }
+
+  .returncomment-container {
+    display: flex;
+    flex-direction: column;
   }
 }
 
