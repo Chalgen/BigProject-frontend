@@ -1,4 +1,3 @@
-
 <template scoped>
   <div class="container">
     <h1>我的历史反馈</h1>
@@ -11,56 +10,96 @@
         <h4>选择标签<button @click="showModal = false"></button></h4>
         <!-- 标签列表：点击切换选择 -->
         <div class="tag-list">
-          <button 
-            v-for="t in allTags" 
-            :key="t"
-            @click="toggleTag(t)"
-            :class="{active:selected.includes(t) }">
+          <button v-for="t in allTags" :key="t" @click="toggleTag(t)" :class="{ active: selected.includes(t) }">
             {{ t }}
           </button>
-          <button @click="selectall()" :class="{active:isChooseAll==true }">全选</button>
+          <button @click="selectall()" :class="{ active: isChooseAll == true }">全选</button>
         </div>
         <button @click="showModal = false" class="confirm-btn">确定</button>
       </div>
     </div>
 
     <div class="items">
-      <!--<div v-for="post in posts":key="post.id" class="item">
-        <h3>{{ post.content }}</h3>
-      </div>-->
-      <div v-for="item in filteredItems" :key="item.id" class="item">
+      <div v-for="item in posts" :key="item.feedback_id" class="item">
         <h2>{{ item.title }}</h2>
-        <h6>{{ item.tag }} {{ item.isSolved?"已解决":"未解决" }}</h6><!--后续可以通过整个页面可视化信息显示解决状态-->
-        <button @click="openContent(item.id)">进入反馈详情>>></button>
+        <h6>{{ codeToTagMap[item.feedback_type] }} {{ codeToStatusMap[item.feedback_status] }}</h6>
+        <button @click="openContent(item.feedback_id)">进入反馈详情>>></button>
 
       </div>
+
+
     </div>
-    <div v-if="openModal==true" class="content-background">
-      <div class="content-container">
-        <div class="title-popup">
-          <h1>{{ showPost.title }}</h1>
-          <h6>{{ showPost.tag }} {{ showPost.isSolved?"已解决":"未解决" }}{{  }}</h6>
-        </div>
-        <div class="info-popup">
-          <!-- 后续可以通过整个页面可视化信息显示解决状态-->
-        </div>
-        <div class="content-popup">
-          {{ showPost.content }}
-        </div>
-        <div class="rate-popup">
-          <el-rate v-model="rating"></el-rate>
-          <span>评分：{{ rating }}</span>
-        </div>
-        <div class="comment-area">
-          <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
-          <button @click="sentComment()">发送评论</button>
-        </div>
-        <div class="close-popup">
-          <button @click="openModal=false" class="close-popup-button">关闭反馈</button>
+  </div>
+  <div v-if="openModal == true" class="content-background">
+    <div class="content-container">
+      <div class="title-popup">
+        <h1>{{ showPost.title }}</h1>
+        <h5 class="show-message">#{{ codeToTagMap[showPost.feedback_type] }}&#12288;#{{
+          codeToStatusMap[showPost.feedback_status] }}</h5>
+      </div>
+      <div class="info-popup">
+        <!-- 后续可以通过整个页面可视化信息显示解决状态-->
+      </div>
+      <div class="content-popup">
+        {{ showPost.content }}
+      </div>
+      <div class="buttons">
+        <el-button type="primary" @click="openComment = true">查看评论</el-button>
+        <el-button type="primary" @click="viewAttach = true">查看附件</el-button>
+        <!--<el-button type="primary" @click="sentAttach = true">发送附件</el-button>-->
+      </div>
+      <div v-if="showPost.feedback_status == 2">
+        <el-button type="primary" @click="openRating = true">提交评分</el-button>
+        <el-button type="primary" @click="returnComment = true">提交评论</el-button>
+      </div>
+
+      <div class="close-popup">
+        <button @click="openModal = false" class="close-popup-button">关闭反馈</button>
+      </div>
+    </div>
+    <el-dialog title="评论展示" v-model="openComment" :width="'70%'" :z-index='4000' :align-center="true">
+      <div>
+        <div v-if="showPostComment.length == 0">暂无评论</div>
+        <div v-else>
+          <div v-for="i in showPostComment">
+            {{ i.nickname }}:{{ i.content }}
+          </div>
         </div>
       </div>
-      
-    </div>
+    </el-dialog>
+    <el-dialog title="附件展示" v-model="viewAttach" :width="'70%'" :z-index='4000' :align-center="true">
+      <div>
+        <div v-if="showPostAttach.length == 0">暂无附件</div>
+        <div v-else>
+          <div v-for="i in showPostAttach">
+            <img :src="i.attachPhotoURL" class="profile-photo">
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+
+    <el-dialog title="提交评分" v-model="openRating" :width="'70%'" :z-index='4000' :align-center="true">
+      <el-rate v-model="rating"></el-rate>
+      <span>评分：{{ rating }}</span>
+      <el-button @click="updateRating()">提交评分</el-button>
+    </el-dialog>
+    <el-dialog title="提交评论" class="returncomment-container" v-model="returnComment" :width="'70%'" :z-index='4000'
+      :align-center="true">
+      <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
+      <button @click="sentComment()">发送评论</button>
+    </el-dialog>
+
+    <el-dialog title="上传附件" v-model="sentAttach" :width="'70%'" :z-index='4000' :align-center="true">
+      <span class="photo-text">此处上传附件照片：</span>
+      <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
+        :on-exceed="() => ElMessage.warning('仅支持单张图片')">
+        <el-icon>
+          <Plus />
+        </el-icon>
+      </el-upload>
+    </el-dialog>
+
+
   </div>
 </template>
 
@@ -69,47 +108,102 @@
 import { useRouter } from 'vue-router';
 import { useGlobalStore } from '@/store/global'
 const router = useRouter()
-import { ref, onMounted, getCurrentInstance,computed } from 'vue';
+import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
+import { StudentGetPostsApi, updateRatingApi } from '@/api/post';
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
 const { proxy } = getCurrentInstance()
-const global = useGlobalStore()
+const globalStore = useGlobalStore()
 
 const openModal = ref(false)
 const showModal = ref(false)
+const openComment = ref(false)
+const viewAttach = ref(false)
+const sentAttach = ref(false)
+const returnComment = ref(false);
+const openRating = ref(false);
 
-const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题',"校园环境问题","校园安全问题","意见与建议","其他"])
+const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"])
+const codeToTagMap = {
+  //'div': 1,
+  1000: "意见与建议",
+  1001: "其他",
+
+  2001: "教学设施报修",
+  2002: "公共设施报修",
+
+  3000: "校园网服务",
+  3001: "食堂餐饮问题",
+  3002: "校园环境问题",
+  3003: "校园安全问题",
+}
+const codeToStatusMap = {
+  0: "待处理",
+  1: "处理中",
+  2: "已解决",
+  3: "待审核垃圾信息",
+  4: "已确认垃圾信息",
+}
 const selected = ref([])
 
-const rating=ref()
+const rating = ref(5)
 
 
-const posts=ref([])
-const isChooseAll=ref(false);
+const posts = ref([])
+const isChooseAll = ref(false);
 const showPost = ref({ title: '', content: '' })
-const commentContent=ref('');
+const showPostComment = ref([])
+const showPostAttach = ref([])
+const commentContent = ref('');
 
 const isLoading = ref(true);
 const isLoginSuccess = ref(false);
 const userData = ref(null);
 const errorMessage = ref('');
+const confirmPopup = ref(false)
+const PopupMessage = ref('')
 
 const fetchPosts = async () => {
+  const GetPostMessage = {
+    user_id: globalStore.userId
+    //tags:
+  }
   try {
-    const response = await axios.get('http://127.0.0.1:4523/m1/7120556-6843396-default/api/feedback'/*,
-    {params: {
-      user_id:globalStore.userId
-    }}*/);
-    posts.value = response.data.data.post_list
-    console.log(posts.value)
+    const response = await StudentGetPostsApi(GetPostMessage);
+    //response=await axios.get(kjasfasf,GetPostMessage);
+    posts.value = response.data.data.list
+    console.log(posts)
     errorMessage.value = null;
   } catch (err) {
-    errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
+    errorMessage.value = err.response.data.message || '网络错误，请稍后再试';
     console.error('获取帖子失败:', err);
   } finally {
     isLoading.value = false;
   }
-  console.log(response.value)
-};
+}
+async function updateRating() {
+  const ratingData = {
+    target_postid: showPost.feedback_id,
+    rate: rating,
+  }
+  try {
+    const response = await updateRatingApi(ratingData);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      ElMessage.success('上传成功')
+      //PopupMessage.value = "成功评分!";
+    } else {
+      ElMessage.error(msg || '评分失败')
+      //PopupMessage.value = "评分失败！";
+      //errorMessage.value=data.
+    }
+  } catch (error) {
+    ElMessage.error('未连接到服务器：' + (error.response?.data?.msg || '网络错误'))
+    //PopupMessage.value = "未连接到服务器";
+  }
+}
 
 // 组件挂载时获取帖子
 onMounted(() => {
@@ -117,23 +211,23 @@ onMounted(() => {
 });
 
 const toggleTag = (tag) => {//维护slected{tags}数组
-  const idx = selected.value.indexOf(tag) 
-  if(idx>-1){
+  const idx = selected.value.indexOf(tag)
+  if (idx > -1) {
     selected.value.splice(idx, 1)
-    isChooseAll=false;
-  }else{
+    isChooseAll = false;
+  } else {
     selected.value.push(tag)
-    if(selected.value===allTags.value) isChooseAll=true;
+    if (selected.value === allTags.value) isChooseAll = true;
   }
   console.log(filteredItems)
 }
-function selectall(){
-  if(!isChooseAll.value){
+function selectall() {
+  if (!isChooseAll.value) {
     selected.value = [...allTags.value];
-    isChooseAll,value=true;
-  }else{
+    isChooseAll, value = true;
+  } else {
     selected.value = []
-    isChooseAll.value=false;
+    isChooseAll.value = false;
   }
   //selected.value=allTags.value不行：selected会直接和allTag共享内存地址
   //console.log(selected)
@@ -141,26 +235,26 @@ function selectall(){
 }
 
 const filteredItems = computed(() => {
-  return posts.value.filter(item=>allTags.value.includes(item.tag));
+  return posts.value.filter(item => allTags.value.includes(item.tag));
 });
 /*const filteredItems = computed(() => {
   return posts.value.filter(item=>selected.value.includes(item.tag));
 });*/
-function openContent(postid){
-  showPost.value=posts.value.find(item=>item.id==postid);
-  openModal.value=true;
+function openContent(postid) {
+  showPost.value = posts.value.find(item => item.feedback_id == postid);
+  openModal.value = true;
 }
 
-const user_id=global.userId;
-function sentComment(){
-  const commentData={
-    content:{
-      comment:commentContent.value,
+const user_id = globalStore.userId;
+function sentComment() {
+  const commentData = {
+    content: {
+      comment: commentContent.value,
     },
     user_id: user_id,
   }
-  commentContent.value='';
-  axios.post('',commentData)
+  commentContent.value = '';
+  axios.post('', commentData)
 }
 
 
@@ -178,7 +272,7 @@ function sentComment(){
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  gap:20px;
+  gap: 20px;
 
   h1 {
     color: #2c3e50;
@@ -189,13 +283,14 @@ function sentComment(){
     padding-bottom: 0.8rem;
     border-bottom: 1px solid #f0f0f0;
   }
+
   .post-settings {
     display: flex;
     justify-content: center;
 
     .select-tag {
-      width:130px;
-      height:40px;
+      width: 130px;
+      height: 40px;
       padding: 8px 16px;
       background-color: #42b983;
       color: #fff;
@@ -205,6 +300,11 @@ function sentComment(){
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
+  }
+
+  .returncomment-container {
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -321,22 +421,18 @@ function sentComment(){
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   margin-bottom: 40px;*/
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   /*width:800px;*/
 }
 
 /* 单个反馈卡片样式 */
 .item {
-  /*background-color: #e2f8e0;background-color: #fdf5f5;
-  /*width:800px; */
-  
-  border: 1px solid #c9c7c7; 
+  border: 1px solid #c9c7c7;
   border-radius: 8px;
   padding: 20px;
   transition: box-shadow 0.3s ease;
-  /*border-top: 1px solid #111111;border-bottom: 1px solid #111111;*/
 }
 
 .item:hover {
@@ -378,19 +474,20 @@ function sentComment(){
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.3);
-  
+
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+
   .content-container {
     /** */
-    
+
     background-color: #fff;
     width: 100%;
     max-width: 1000px;
     height: auto;
-    max-height: 70vh;
+    max-height: 90vh;
     border-radius: 8px;
     padding: 25px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -400,10 +497,11 @@ function sentComment(){
 
 
 .title-popup {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color:black;
-  padding-bottom: 12px;
+
+  color: black;
+  gap: 20px;
+  /*font-size: 1.5rem;
+  font-weight: 600;padding-bottom: 12px;*/
   border-bottom: 1px solid #eee;
 }
 
@@ -411,9 +509,10 @@ function sentComment(){
 .content-popup {
   font-size: 1rem;
   line-height: 1.6;
-  color:black;
-  flex: 1; /* 占满剩余空间 */
-  overflow-y: auto; 
+  color: black;
+  flex: 1;
+  /* 占满剩余空间 */
+  overflow-y: auto;
   max-height: 40vh;
   white-space: pre;
 }
@@ -421,20 +520,21 @@ function sentComment(){
 
 .close-popup {
   display: flex;
-  justify-content: flex-end; /* 按钮靠右 border-top: 1px solid #eee;*/
+  justify-content: flex-end;
+  /* 按钮靠右 border-top: 1px solid #eee;*/
   padding-top: 12px;
-  
+
 }
 
 /* 按钮样式 background-color: #3498db;transition: background 0.3s;*/
 .close-popup-button {
   padding: 8px 16px;
-  
+
   color: black;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  
+
 }
 
 .close-popup-button:hover {
@@ -455,7 +555,8 @@ function sentComment(){
 
 
 
-.loading, .empty-tip {
+.loading,
+.empty-tip {
   text-align: center;
   padding: 50px 0;
   color: #999;
@@ -491,7 +592,7 @@ function sentComment(){
 
 .title-popup h1 {
   font-size: 1.5rem;
-  color: #1f2937; 
+  color: #1f2937;
   margin: 0;
   font-weight: 600;
 }
@@ -520,28 +621,30 @@ function sentComment(){
 /* 评论输入区域 */
 .comment-area {
   display: flex;
-  gap: 0.8rem; /* 输入框与按钮间距 */
+  gap: 0.8rem;
+  /* 输入框与按钮间距 */
   margin-bottom: 2rem;
 }
 
 .comment-text {
-  flex: 1; /* 输入框占满剩余宽度 */
+  flex: 1;
+  /* 输入框占满剩余宽度 */
   padding: 0.9rem 1.2rem;
-  border: 1px solid #d1d5db; 
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 0.95rem;
-  transition: border-color 0.2s ease; 
+  transition: border-color 0.2s ease;
 }
 
 .comment-text:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); 
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .comment-area button {
   padding: 0.9rem 1.8rem;
-  background-color: #3b82f6; 
+  background-color: #3b82f6;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -552,7 +655,7 @@ function sentComment(){
 }
 
 .comment-area button:hover {
-  background-color: #2563eb; 
+  background-color: #2563eb;
 }
 
 .close-popup {
@@ -573,8 +676,8 @@ function sentComment(){
 }
 
 .close-popup button:hover {
-  background-color: #e5e7eb; 
-  transform: translateY(-1px); 
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
 }
 
 
@@ -593,7 +696,7 @@ function sentComment(){
   }
 
   .comment-area button {
-    width: 100%; 
+    width: 100%;
   }
 }
 </style>

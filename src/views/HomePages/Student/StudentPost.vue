@@ -1,23 +1,16 @@
 <template scoped>
   <div class="container">
     <h1>反馈校园事务</h1>
-    <input 
-      v-model="title" 
-      placeholder="标题" 
-      class="posttitle"
-    >
-    <textarea 
-      v-model="content" 
-      placeholder="内容" 
-      class="postcontent"
-    ></textarea>
+    <input v-model="title" placeholder="标题" class="posttitle">
+    <textarea v-model="content" placeholder="内容" class="postcontent"></textarea>
     <div class="post-settings">
-      <button class="IsAnonbutton" @click="CheckAnon()">{{ IsAnon?"是否匿名：匿名":"是否匿名：实名" }}</button>
-      <button class="IsUrgentbutton" @click="CheckUrgent()">{{ IsUrgent?"是否紧急：紧急":"是否紧急：不紧急" }}</button>
-      <button class="select-tag" @click="showModal = true">点击选择标签</button>
+      <el-button class="IsAnonbutton" @click="CheckAnon()">{{ IsAnon ? "是否匿名：匿名" : "是否匿名：实名" }}</el-button>
+      <el-button class="IsUrgentbutton" @click="CheckUrgent()">{{ IsUrgent ? "是否紧急：紧急" : "是否紧急：不紧急" }}</el-button>
+      <el-button class="select-tag" @click="showModal = true">点击选择标签</el-button>
+      <el-button class="choose-attach" @click="sentAttach = true">发送附件</el-button>
     </div>
     <div class="post-div">
-      <button class="postbutton" @click="post()">发帖</button>
+      <el-button class="postbutton" @click="post()">发帖</el-button>
     </div>
 
 
@@ -26,13 +19,8 @@
         <h4>选择标签<button @click="showModal = false"></button></h4>
         <!-- 标签列表：点击切换选择 -->
         <div class="tag-list">
-          <button 
-            v-for="t in allTags" 
-            :key="t"
-            :disabled="selected.length>=1 && !selected.includes(t)"
-            @click="toggleTag(t)"
-            :class="{active:selected.includes(t) }"
-          >
+          <button v-for="t in allTags" :key="t" :disabled="selected.length >= 1 && !selected.includes(t)"
+            @click="toggleTag(t)" :class="{ active: selected.includes(t) }">
             {{ t }}
           </button>
         </div>
@@ -40,95 +28,145 @@
       </div>
     </div>
 
-    <div v-if="sentSuccessPopup==true" class="success-background">
+    <div v-if="postPopup == true" class="success-background">
       <div class="success-popup">
-        <h1>反馈发送成功！</h1>
-        <button @click="sentSuccessPopup=false" class="close-success-popup">确认</button>
+        <h1>{{ PopupMessage }}</h1>
+        <button @click="postPopup = false" class="close-success-popup">确认</button>
       </div>
     </div>
-    
+    <el-dialog title="上传附件" v-model="sentAttach" :width="'70%'" :z-index='4000' :align-center="true">
+      <span class="photo-text">此处上传附件照片：</span>
+
+      <!--<input type="file" accept="image/*" @change="sender" class="post-input"></input><button @click="uploadPhoto":disabled="!selected"></button>
+          <button @click="uploadPhoto()">上传新头像</button>-->
+      <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
+        :on-exceed="() => ElMessage.warning('仅支持3张图片')">
+        <el-icon>
+          <Plus />
+        </el-icon>
+      </el-upload>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { useGlobalStore } from '@/store/global'
-import { ref,getCurrentInstance } from 'vue';
+import { ref, getCurrentInstance } from 'vue';
 import { useRouter } from 'vue-router'
 import axios from "axios";
+import { SentPostApi } from '@/api/post';
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
 const router = useRouter()
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
-const IsAnon=ref(false);
-const IsUrgent=ref(false);
-const sentSuccessPopup=ref(false);
+const IsAnon = ref(false);
+const IsUrgent = ref(false);
+const postPopup = ref(false);
+const PopupMessage = ref('');
+const errorMessage = ref('')
+const sentAttach = ref(false)
 
-function CheckAnon(){
-  if(IsAnon.value==false){
-    IsAnon.value=true;
-  }else{
-    IsAnon.value=false;
+function CheckAnon() {
+  if (IsAnon.value == false) {
+    IsAnon.value = true;
+  } else {
+    IsAnon.value = false;
   }
 }
-function CheckUrgent(){
-  if(IsUrgent.value==false){
-    IsUrgent.value=true;
-  }else{
-    IsUrgent.value=false;
+function CheckUrgent() {
+  if (IsUrgent.value == false) {
+    IsUrgent.value = true;
+  } else {
+    IsUrgent.value = false;
   }
 }
 
-const gotohomepage=()=>{//必须import use router 、const router、const goto=()=>之后才能跳转
-  router.push('/homepage')  
+const gotohomepage = () => {//必须import use router 、const router、const goto=()=>之后才能跳转
+  router.push('/homepage')
 }
-function jumphomepage(){
+function jumphomepage() {
   gotohomepage()
 }
 
-const title=ref();
-const content=ref();
-const user_id=globalStore.userId;
+const title = ref();
+const content = ref();
+const user_id = globalStore.userId;
 
-function post(){
-  const postingData={
-    content : {
-      title:title.value,
-      content:content.value,
-      tags:selected.value,
-      anonymity:IsAnon.value,
-      Urgent:IsUrgent.value,
-    },
-    user_id : user_id,
+async function post() {
+  const postingData = {
+    title: title.value,
+    content: content.value,
+    feedback_type: tagToCodeMap[selected.value],
+    is_nicked: IsAnon.value,
+    is_urgent: IsUrgent.value,
+    //user_id: user_id,
     //test_selected_lenth: selected.lenth
   }
   title.value = '';
   content.value = '';
-  sentSuccessPopup.value=true
+  try {
+    const response = await SentPostApi(postingData);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      postPopup.value = true;
+      PopupMessage.value = "成功发送反馈!";
+    } else {
+      postPopup.value = true;
+      PopupMessage.value = "发帖失败！";
+      //errorMessage.value=data.
+    }
+  } catch (error) {
+    postPopup.value = true;
+    PopupMessage.value = "未连接到服务器";
+  }
 
-  axios.post('http://127.0.0.1:4523/m1/7074224-6795300-default/api/student/post',postingData).then(response=>{
-    const {doce,data,msg}=response.data;
-    /*if(code==200&&msg=='success'){
-      sentSuccessPopup.value=true
-    }else{
-
-    }*/
-  })
-  sentSuccessPopup.value=true;
 }
 
 const showModal = ref(false) // 控制弹窗显示
-const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题',"校园环境问题","校园安全问题","意见与建议","其他"]) // 所有可选标签
+const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"]) // 所有可选标签
+const tagToCodeMap = {
+  //'div': 1,
+  "意见与建议": 1000,
+  "其他": 1001,
+
+  "宿舍设施报修": 2000,
+  "教学设施报修": 2001,
+  "公共设施报修": 2002,
+
+  "校园网服务": 3000,
+  "食堂餐饮问题": 3001,
+  "校园环境问题": 3002,
+  "校园安全问题": 3003,
+}
 const selected = ref([]) // 已选标签
 
 // 切换标签选择：点击标签添加/移除
 const toggleTag = (tag) => {
   const idx = selected.value.indexOf(tag)
-  
+
   idx > -1 ? selected.value.splice(idx, 1) : selected.value.push(tag)
 }
 
+const handleUpload = async ({ file }) => {
+  const formData = new FormData()
+  formData.append('image', file)  // 保持与后端约定的参数名
 
+  try {
+    // 使用封装的ChangeProfilePhotoApi接口
+    const response = await FetchAttachApi(formData)
+    const { code, msg, data } = response.data
 
-
+    if (code === 200 && msg === 'success') {
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error(msg || '上传失败')
+    }
+  } catch (error) {
+    ElMessage.error('上传失败：' + (error.response?.data?.msg || '网络错误'))
+  }
+}
 
 </script>
 
@@ -144,21 +182,34 @@ const toggleTag = (tag) => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-  /* 弹窗效果 */
-  .success-background{
+  .el-message {
+    font-size: 16px;
+    padding: 15px 20px;
+  }
+
+  .el-message .el-message__icon {
+    font-size: 20px;
+    margin-right: 10px;
+  }
+
+  .el-message .el-message__closeBtn {
+    font-size: 18px;
+  }
+
+  .success-background {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.3);
-    
+
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
 
-    .success-popup{
+    .success-popup {
       background-color: #fff;
       width: 100%;
       max-width: 250px;
@@ -167,30 +218,31 @@ const toggleTag = (tag) => {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       position: relative;
 
-      display:flex;
+      display: flex;
       flex-direction: column;
       justify-items: center;
     }
   }
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  
-    .modal-box {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 400px;
-    }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+  }
 }
 
 h1 {
@@ -244,14 +296,17 @@ h1 {
   text-align: right;
 }
 
-.post-settings{
+.post-settings {
   display: flex;
   flex-direction: row;
   gap: 30px;
 }
 
-.IsAnonbutton,.IsUrgentbutton,.select-tag {
-  background-color:green;
+.IsAnonbutton,
+.IsUrgentbutton,
+.select-tag,
+.choose-attach {
+  background-color: green;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -261,6 +316,7 @@ h1 {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
 .postbutton {
   display: flex;
   flex-direction: row;
@@ -289,11 +345,11 @@ h1 {
     margin: 1rem;
     padding: 1.5rem;
   }
-  
+
   h1 {
     font-size: 1.5rem;
   }
-  
+
   .postbutton {
     width: 100%;
     padding: 0.9rem;
@@ -301,17 +357,33 @@ h1 {
 }
 
 
-.modal-box h4 { margin: 0 0 15px; display: flex; justify-content: space-between; align-items: center; }
-.modal-box button { border: none; cursor: pointer; }
+.modal-box h4 {
+  margin: 0 0 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-box button {
+  border: none;
+  cursor: pointer;
+}
 
 /* 标签按钮样式 */
-.tag-list { gap: 8px; display: flex; flex-wrap: wrap; margin-bottom: 15px; }
+.tag-list {
+  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
 .tag-list button {
   padding: 6px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   background: #fff;
 }
+
 .tag-list button.active {
   background: #2563eb;
   color: #fff;

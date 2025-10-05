@@ -35,6 +35,10 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
+import { StudentGetPostsApi, updateRatingApi, receiveFeedbackApi, checkingRequestApi } from '@/api/post';
+import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
 
