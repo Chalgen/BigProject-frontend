@@ -103,6 +103,12 @@ const routes=[
             component:()=>import("@/views/HomePages/SuperAdmin/SuperAdminCheck.vue"),
             //meta: { requiresAuth: true }
           },
+          {
+            path: 'SuperAdminApply',
+            name: 'SuperAdminApply',
+            component:()=>import("@/views/HomePages/SuperAdmin/SuperAdminApply.vue"),
+            //meta: { requiresAuth: true}
+          }
         ]
     },
     {

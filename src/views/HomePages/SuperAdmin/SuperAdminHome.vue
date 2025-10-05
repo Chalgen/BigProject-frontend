@@ -1,22 +1,18 @@
 <template scoped>
   <div class="container">
-    <h2 class="title">学生服务平台[普通管理员]</h2>
-
+    <div class="title">
+      <h2>学生服务平台【超级管理员】</h2>
+    </div>
     <div class="navigate">
 
     <RouterLink :to="{ name: 'SuperAdminCRUD' }">增删改查</RouterLink>
-    <RouterLink :to="{ name: 'SuperAdminCheck' }">查看操作历史</RouterLink>
-    <RouterLink :to="{ name: 'SuperAdminView' }">浏览所有反馈</RouterLink>
-    <RouterLink :to="{ name: 'SuperAdminApply' }">查看申请</RouterLink>
-    
-      
-
+    <RouterLink :to="{ name: 'SuperAdminCheck'}">查看操作历史</RouterLink>
+    <RouterLink :to="{ name: 'SuperAdminView'}">浏览所有反馈</RouterLink>
+    <RouterLink :to="{ name: 'SuperAdminApply'}">查看申请</RouterLink>
     </div>
-
-    <div class="main-content">
-      <!--主要内容-->
-      <RouterView></RouterView>
-    </div>
+   <div class="main-content">
+    <RouterView></RouterView>
+   </div>
   </div>
 </template>
 
