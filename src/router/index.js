@@ -80,51 +80,45 @@ const routes = [
 
 
 
-    {
-        path:"/HomePages/SuperAdmin/SuperAdminHome",
-        component:()=>import("@/views/HomePages/SuperAdmin/SuperAdminHome.vue"),
-        //meta: { requiresAuth: true } 
-        children: [
-          //嵌套更深的路由
-          {
-            path: 'SuperAdminView', 
-            name: 'SuperAdminView',
-            component:()=>import("@/views/HomePages/SuperAdmin/SuperAdminView.vue"),
-            //meta: { requiresAuth: true }
-          },
-          {
-            path: 'SuperAdminCRUD', 
-            name: 'SuperAdminCRUD',
-            component:()=>import("@/views/HomePages/SuperAdmin/SuperAdminCRUD.vue"), 
-            //meta: { requiresAuth: true }
-            
-          },
-          {
-            path: 'SuperAdminCheck', 
-            name: 'SuperAdminCheck',
-            component:()=>import("@/views/HomePages/SuperAdmin/SuperAdminCheck.vue"),
-            //meta: { requiresAuth: true }
-          },
-          {
-            path: 'SuperAdminApply',
-            name: 'SuperAdminApply',
-            component:()=>import("@/views/HomePages/SuperAdmin/SuperAdminApply.vue"),
-            //meta: { requiresAuth: true}
-          }
-        ]
-    },
-    {
-        path:"/testpage1",
-        component:()=>import("@/views/testpage1.vue")
-    },
-    {
-        path:"/postpage",
-        component:()=>import("@/views/postpage.vue")
-    },
-    {
-        path:"/register",
-        component:()=>import("@/views/register.vue")
-    },
+  {
+    path: "/HomePages/SuperAdmin/SuperAdminHome",
+    component: () => import("@/views/HomePages/SuperAdmin/SuperAdminHome.vue"),
+    meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
+
+    children: [
+      //嵌套更深的路由
+      {
+        path: 'SuperAdminView',
+        name: 'SuperAdminView',
+        component: () => import("@/views/HomePages/SuperAdmin/SuperAdminView.vue"),
+        meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
+      },
+      {
+        path: 'SuperAdminCRUD',
+        name: 'SuperAdminCRUD',
+        component: () => import("@/views/HomePages/SuperAdmin/SuperAdminCRUD.vue"),
+        meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
+      },
+      {
+        path: 'SuperAdminCheck',
+        name: 'SuperAdminCheck',
+        component: () => import("@/views/HomePages/SuperAdmin/SuperAdminCheck.vue"),
+        meta: { requiresAuth: true, allowedRoles: ['SUPERADMIN'], },
+      },
+    ]
+  },
+  {
+    path: "/testpage1",
+    component: () => import("@/views/testpage1.vue")
+  },
+  {
+    path: "/postpage",
+    component: () => import("@/views/postpage.vue")
+  },
+  {
+    path: "/register",
+    component: () => import("@/views/register.vue")
+  },
 ]
 
 const router = createRouter({
