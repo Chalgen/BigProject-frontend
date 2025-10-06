@@ -15,7 +15,7 @@ export const loginApi = (params: LoginParams) => {
     "headers": {//通过headers请求头的方式告知服务器 返回数据 是 JSON形式
       "Content-Type": "application/json",
     },
-    url: "/api/auth/login",
+    url: "/api/auth/login/student",
     //url: "/api/auth/login",
 
     //指定host之后的port
@@ -87,10 +87,10 @@ export const ChangeProfilePhotoApi = (data: FormData) => {
   return request({
     "headers": {
       "Authorization": 'Bearer ' + token,
+      "Content-Type": "multipart/form-data",
     },
-    url: "/api/user/changeprofilephoto",
+    url: "/api/file/upload",
     method: "post",
     data: data,
   })
 }
-

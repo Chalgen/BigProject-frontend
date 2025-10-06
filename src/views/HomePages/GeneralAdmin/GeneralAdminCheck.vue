@@ -23,7 +23,7 @@
     <div class="items">
       <!--<div v-for="item in filteredItems" :key="item.feedback_id" class="item">-->
       <div v-for="item in posts" :key="item.feedback_id" class="item"
-        :style="{ color: getColor(item.feedback_status) }">
+        :style="{ color: getColor(item.feedback_status), backgroundColor: getBackgroundColor(item.feedback_status) }">
         <h2>{{ item.title }}</h2>
         <h6>#{{ codeToTagMap[item.feedback_type] }} #{{ codeToStatusMap[item.feedback_status] }}</h6>
         <button @click="openContent(item.feedback_id)">进入反馈详情>>></button>
@@ -104,7 +104,7 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { StudentGetPostsApi, updateRatingApi, receiveFeedbackApi, checkingRequestApi } from '@/api/post';
+import { GetPostsByIdApi, checkingRequestApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -116,6 +116,10 @@ const showModal = ref(false)
 const openComment = ref(false)
 const viewAttach = ref(false)
 const sentAttach = ref(false)
+
+const total = ref(0);
+//const posts = ref([]);
+const currentPage = ref(1);
 
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"])
 const codeToTagMap = {
@@ -146,6 +150,14 @@ const getColor = (val) => {
     case 3: return '#FF6600'//orange
     case 4: return '#FF3300'//red
   }
+
+}
+const getBackgroundColor = (val) => {
+  if (val == 1) {
+    return '#FFCC00'
+  } else {
+    return 'white'
+  }
 }
 const selected = ref([])
 
@@ -167,12 +179,10 @@ const confirmPopup = ref(false)
 const PopupMessage = ref('')
 const postPopup = ref(false)
 const fetchPosts = async () => {
-  const GetPostMessage = {
-    user_id: globalStore.userId
-    //tags:
-  }
   try {
-    const response = await StudentGetPostsApi(GetPostMessage);
+    const response = await GetPostsByIdApi(currentPage.value, globalStore.userId);
+    posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
+      console.log(total)
     posts.value = response.data.data.list
     console.log(posts)
     errorMessage.value = null;
@@ -251,6 +261,8 @@ async function cancelreceive() {
 
 /* container下的都是手写 */
 .container {
+  display: flex;
+  flex-direction: column;
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;
@@ -258,7 +270,7 @@ async function cancelreceive() {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  gap: 20px;
+  gap: 30px;
 
   h1 {
     color: #2c3e50;
@@ -273,6 +285,8 @@ async function cancelreceive() {
   .post-settings {
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 20px;
 
     .select-tag {
       width: 130px;

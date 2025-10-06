@@ -190,7 +190,14 @@ function redirectByUserType(userType) {
 </script>
 
 <style scoped>
-/*ai生成，最后会人力写orz */
+::v-deep .el-message {
+    font-size: 30px;
+}
+
+::v-deep .el-message__content {
+    font-size: 30px;
+}
+
 .sr-only {
     position: absolute;
     width: 1px;

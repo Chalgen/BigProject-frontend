@@ -1,18 +1,18 @@
 <template scoped>
   <div class="container">
+
     <div class="title">
-      <h2>学生服务平台【超级管理员】</h2>
+      <h1>学生服务平台[超级管理员]{{ globalStore.userType }}</h1>
     </div>
     <div class="navigate">
-
-    <RouterLink :to="{ name: 'SuperAdminCRUD' }">增删改查</RouterLink>
-    <RouterLink :to="{ name: 'SuperAdminCheck'}">查看操作历史</RouterLink>
-    <RouterLink :to="{ name: 'SuperAdminView'}">浏览所有反馈</RouterLink>
-    <RouterLink :to="{ name: 'SuperAdminApply'}">查看申请</RouterLink>
+      <RouterLink :to="{ name: 'SuperAdminCRUD' }" class="navigate-btn">查看用户</RouterLink>
+      <RouterLink :to="{ name: 'SuperAdminCheck' }" class="navigate-btn">查看操作历史</RouterLink>
+      <RouterLink :to="{ name: 'SuperAdminView' }" class="navigate-btn">查看反馈</RouterLink>
     </div>
-   <div class="main-content">
-    <RouterView></RouterView>
-   </div>
+    <div class="main-content">
+      <!--主要内容-->
+      <RouterView></RouterView>
+    </div>
   </div>
 </template>
 

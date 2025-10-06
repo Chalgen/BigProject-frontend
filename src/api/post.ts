@@ -13,14 +13,36 @@ export const StudentGetPostsApi = (data: FormData) => {
         data: data,
     })
 }
-export const GetPostsByIdApi = (wpage: string | number, id: string | number) => {
+export const GetPostsByIdApi = (wpage: string | number, id: string | number, tags: number[] | string[]) => {
     const globalStore = useGlobalStore();
     const token = globalStore.token;
     return request({
         "headers": {
             "Authorization": 'Bearer ' + token,
         },
-        url: `/api/feedback?page=${wpage}&acceptedByUserId=${id}`,
+        url: `/api/feedback?page=${wpage}&acceptedByUserId=${id}&tags=${tags}`,
+        method: "get",
+    })
+}
+export const GetPostsByStudentIdApi = (wpage: string | number, id: string | number, tags: number[] | string[]) => {
+    const globalStore = useGlobalStore();
+    const token = globalStore.token;
+    return request({
+        "headers": {
+            "Authorization": 'Bearer ' + token,
+        },
+        url: `/api/feedback?page=${wpage}&student=${id}&tags=${tags}`,
+        method: "get",
+    })
+}
+export const GetPostsByKeyWordApi = (wpage: string | number, id: string | number, keyword: string) => {
+    const globalStore = useGlobalStore();
+    const token = globalStore.token;
+    return request({
+        "headers": {
+            "Authorization": 'Bearer ' + token,
+        },
+        url: `/api/feedback?page=${wpage}&acceptedByUserId=${id}&keyword=${keyword}`,
         method: "get",
     })
 }
@@ -92,6 +114,19 @@ export const confirmJunkApi = (data: FormData) => {
             "Authorization": 'Bearer ' + token,
         },
         url: "/api/user/confirmJunk",
+        method: "post",
+        data: data,
+    })
+}
+
+export const uploadAnnexPhotoApi = (data: FormData) => {
+    const globalStore = useGlobalStore();
+    const token = globalStore.token;
+    return request({
+        "headers": {
+            "Authorization": 'Bearer ' + token,
+        },
+        url: "/api/user/uploadAnnexPhoto",
         method: "post",
         data: data,
     })

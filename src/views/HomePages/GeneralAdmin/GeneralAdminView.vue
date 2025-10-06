@@ -3,6 +3,9 @@
     <h1>所有学生反馈</h1>
     <div class="post-settings">
       <button class="select-tag" @click="showModal = true">点击选择标签</button>
+      <div class="searching-container"><input type="text" v-model="keyWord" placeholder="'关键字查询'"></input>
+        <el-button @click="KeyWordSearch()">点击搜索</el-button>
+      </div>
     </div>
     <div v-if="showModal" class="modal">
       <div class="modal-box">
@@ -15,11 +18,10 @@
           <button @click="selectall()" :class="{ active: isChooseAll == true }">全选</button>
           <button @click="selectnull()">全不选</button>
         </div>
-        <button @click="showModal = false" class="confirm-btn">确定</button>
+        <button @click="showModal = false, fetchPosts()" class="confirm-btn">确定</button>
       </div>
     </div>
     <div class="items">
-      <!--<div v-for="item in filteredItems" :key="item.feedback_id" class="item">-->
       <div v-for="item in posts" :key="item.feedback_id"
         :style="{ color: getColor(item.feedback_status), backgroundColor: getBackgroundColor(item.feedback_status) }"
         class="item">
@@ -133,12 +135,14 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { StudentGetPostsApi, updateRatingApi, receiveFeedbackApi, checkingRequestApi, GetPostsByIdApi } from '@/api/post';
+import { checkingRequestApi, GetPostsByIdApi, GetPostsByKeyWordApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
+
+const keyWord = ref('');
 
 const openModal = ref(false)
 const showModal = ref(false)
@@ -148,9 +152,10 @@ const checkFeedback = ref(false);
 const sentAttach = ref(false)
 
 //const currentPage = ref(Number(router.query.page) || 1); // 当前页码
-const pageSize = ref(10);   // 每页条数
-const total = ref(0);       // 总条数
-const posts = ref([]);      // 当前页数据
+const pageSize = ref(10);
+const total = ref(0);
+const posts = ref([]);
+const currentPage = ref(1);
 
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"])
 const selected = ref([])
@@ -168,15 +173,7 @@ const codeToTagMap = {
   3002: "校园环境问题",
   3003: "校园安全问题",
 }
-const tagToCodeMap = Object.entries(codeToTagMap).reduce((map, [code, tag]) => {
-  map[tag] = Number(code);
-  return map;
-}, {});
-const selectedCodes = computed(() => {
-  return selected.value
-    .filter(tag => tagToCodeMap.hasOwnProperty(tag))
-    .map(tag => tagToCodeMap[tag]);
-});
+
 
 const codeToStatusMap = {
   0: "待处理",
@@ -185,6 +182,24 @@ const codeToStatusMap = {
   3: "待审核垃圾信息",
   4: "已确认垃圾信息",
 }
+const tagToCodeMap = {
+  "意见与建议": 1000,
+  "其他": 1001,
+
+  "宿舍设施报修": 2000,
+  "教学设施报修": 2001,
+  "公共设施报修": 2002,
+
+  "校园网服务": 3000,
+  "食堂餐饮问题": 3001,
+  "校园环境问题": 3002,
+  "校园安全问题": 3003,
+}
+const selectedcode = computed(() => {
+  return selected.value.map(tagcode => {
+    return tagToCodeMap[tagcode] || "9919";
+  });
+});
 const getColor = (val) => {
   switch (val) {
     case 0: return '#33CC00'
@@ -195,8 +210,8 @@ const getColor = (val) => {
   }
 }
 const getBackgroundColor = (val) => {
-  if (val == 3) {
-    return '#FFFF00'
+  if (val == 0) {
+    return '#0033FF'
   } else {
     return 'white'
   }
@@ -236,21 +251,8 @@ const errorMessage = ref('');
 const confirmPopup = ref(false)
 const postPopup = ref(false);
 const PopupMessage = ref('')
-const currentPage = ref(1);
-const fetchPosts = async () => {
-  try {
-    console.log(currentPage)
-    const response = await GetPostsByIdApi(currentPage.value, globalStore.userId);
-    posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
-      console.log(total)
-    errorMessage.value = null;
-  } catch (err) {
-    errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
-    console.error('获取帖子失败:', err);
-  } finally {
-    isLoading.value = false;
-  }
-}
+
+
 
 // 组件挂载时获取帖子
 onMounted(() => {
@@ -262,10 +264,10 @@ const toggleTag = (tag) => {//维护slected{tags}数组
   const idx = selected.value.indexOf(tag)
   if (idx > -1) {
     selected.value.splice(idx, 1)
-    isChooseAll = false;
+    //isChooseAll = false;
   } else {
     selected.value.push(tag)
-    if (selected.value === allTags.value) isChooseAll = true;
+    //if (selected.value === allTags.value) isChooseAll = true;
   }
   console.log(selectedCodes)
   console.log(selected)
@@ -285,7 +287,22 @@ function openContent(postid) {
   openModal.value = true;
 }
 
-const user_id = globalStore.userId;
+const fetchPosts = async () => {
+  try {
+    console.log(selectedcode.value)
+    const tagcode = selectedcode.value.join(',');
+    //const response = await GetPostsByIdApi(currentPage.value, globalStore.userId);
+    const response = await GetPostsByIdApi(currentPage.value, 0, tagcode);
+    posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
+      console.log(total)
+    errorMessage.value = null;
+  } catch (err) {
+    errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
+    console.error('获取帖子失败:', err);
+  } finally {
+    isLoading.value = false;
+  }
+}
 async function sentChecking() {
   const checkingData = {
     feedback_status: value.value,
@@ -309,12 +326,29 @@ async function sentChecking() {
     PopupMessage.value = "未连接到服务器";
   }
 }
+
+async function KeyWordSearch() {
+  try {
+    currentPage.value = 1;
+    const response = await GetPostsByKeyWordApi(currentPage.value, 0, keyWord.value);
+    posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
+      console.log(total)
+    errorMessage.value = null;
+    keyWord.value = '';
+  } catch (err) {
+    errorMessage.value = err.response?.data?.message || '网络错误，请稍后再试';
+    console.error('获取帖子失败:', err);
+  } finally {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <style scoped>
 .container {
 
-
+  display: flex;
+  flex-direction: column;
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;
@@ -326,7 +360,7 @@ async function sentChecking() {
     Geneva,
     Verdana,
     sans-serif;
-  gap: 20px;
+  gap: 30px;
 
   h1 {
     color: #2c3e50;
@@ -339,6 +373,8 @@ async function sentChecking() {
   .post-settings {
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 20px;
 
     .select-tag {
       width: 130px;

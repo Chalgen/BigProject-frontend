@@ -14,6 +14,7 @@
             {{ t }}
           </button>
           <button @click="selectall()" :class="{ active: isChooseAll == true }">全选</button>
+          <button @click="selectnull()">全不选</button>
         </div>
         <button @click="showModal = false" class="confirm-btn">确定</button>
       </div>
@@ -21,13 +22,12 @@
 
     <div class="items">
       <div v-for="item in posts" :key="item.feedback_id" class="item">
-        <h2>{{ item.title }}</h2>
-        <h6>{{ codeToTagMap[item.feedback_type] }} {{ codeToStatusMap[item.feedback_status] }}</h6>
+        <div class="item-messages">
+          <h2>{{ item.title }}</h2>
+          <h6>#{{ codeToTagMap[item.feedback_type] }} #{{ codeToStatusMap[item.feedback_status] }}</h6>
+        </div>
         <button @click="openContent(item.feedback_id)">进入反馈详情>>></button>
-
       </div>
-
-
     </div>
   </div>
   <div v-if="openModal == true" class="content-background">
@@ -68,11 +68,12 @@
       </div>
     </el-dialog>
     <el-dialog title="附件展示" v-model="viewAttach" :width="'70%'" :z-index='4000' :align-center="true">
+      <button @click="out()">查看</button>
       <div>
-        <div v-if="showPostAttach.length == 0">暂无附件</div>
+        <div v-if="showPost.image_urls.length == 0">暂无附件</div>
         <div v-else>
-          <div v-for="i in showPostAttach">
-            <img :src="i.attachPhotoURL" class="profile-photo">
+          <div v-for="i in showPost.image_urls">
+            <img :src="i" class="profile-photo">
           </div>
         </div>
       </div>
@@ -89,6 +90,8 @@
       <button @click="sentComment()">发送评论</button>
     </el-dialog>
 
+
+
     <el-dialog title="上传附件" v-model="sentAttach" :width="'70%'" :z-index='4000' :align-center="true">
       <span class="photo-text">此处上传附件照片：</span>
       <el-upload :action="false" :http-request="handleUpload" :limit="3" list-type="picture-card"
@@ -104,13 +107,16 @@
 </template>
 
 <script setup>
+function out() {
+  console.log(showPost.value.image_urls)
+}
 //import()
 import { useRouter } from 'vue-router';
 import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { StudentGetPostsApi, updateRatingApi } from '@/api/post';
+import { GetPostsByStudentIdApi, updateRatingApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -164,20 +170,23 @@ const userData = ref(null);
 const errorMessage = ref('');
 const confirmPopup = ref(false)
 const PopupMessage = ref('')
-
+const nulltmp = ref();
 const fetchPosts = async () => {
   const GetPostMessage = {
     user_id: globalStore.userId
     //tags:
   }
   try {
-    const response = await StudentGetPostsApi(GetPostMessage);
-    //response=await axios.get(kjasfasf,GetPostMessage);
+    const response = await GetPostsByStudentIdApi(1, globalStore.userId);
     posts.value = response.data.data.list
-    console.log(posts)
     errorMessage.value = null;
+    /*const ifWarning = posts.some(item => { return item.hasOwnProperty('warning_confirmed') && item.warning_confirmed == false && item.feedback_status == 4 });
+    if (ifWarning) {
+      alert("请您在发送反馈时确保内容的有效性和准确性，感谢您的理解和配合，如有异议，请重新反馈，请您点击未确认的垃圾帖子进行确认");
+    }*/
+    ElMessage.success("加载完成!")
   } catch (err) {
-    errorMessage.value = err.response.data.message || '网络错误，请稍后再试';
+    //errorMessage.value = err.response.data.message || '网络错误，请稍后再试';
     console.error('获取帖子失败:', err);
   } finally {
     isLoading.value = false;
@@ -207,39 +216,30 @@ async function updateRating() {
 
 // 组件挂载时获取帖子
 onMounted(() => {
+  selectall();
   fetchPosts();
 });
 
 const toggleTag = (tag) => {//维护slected{tags}数组
+
   const idx = selected.value.indexOf(tag)
   if (idx > -1) {
     selected.value.splice(idx, 1)
-    isChooseAll = false;
+    //isChooseAll.value = false;
   } else {
     selected.value.push(tag)
-    if (selected.value === allTags.value) isChooseAll = true;
+    //if (selected.value === allTags.value) isChooseAll.value = true;
   }
   console.log(filteredItems)
 }
 function selectall() {
-  if (!isChooseAll.value) {
-    selected.value = [...allTags.value];
-    isChooseAll, value = true;
-  } else {
-    selected.value = []
-    isChooseAll.value = false;
-  }
-  //selected.value=allTags.value不行：selected会直接和allTag共享内存地址
-  //console.log(selected)
-  //axios.post("http://127.0.0.1:8080/api/logintest",allTags)
+  selected.value = [...allTags.value];
+}
+function selectnull() {
+  selected.value = ['']
 }
 
-const filteredItems = computed(() => {
-  return posts.value.filter(item => allTags.value.includes(item.tag));
-});
-/*const filteredItems = computed(() => {
-  return posts.value.filter(item=>selected.value.includes(item.tag));
-});*/
+
 function openContent(postid) {
   showPost.value = posts.value.find(item => item.feedback_id == postid);
   openModal.value = true;
@@ -261,18 +261,18 @@ function sentComment() {
 </script>
 
 <style scoped>
-/*部分ai生成，最后会人力写orz */
-
-/* container下的都是手写 */
 .container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 850px;
+  margin: 2.5rem auto;
+  padding: 2.2rem;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
 
   h1 {
     color: #2c3e50;
@@ -308,7 +308,28 @@ function sentComment() {
   }
 }
 
-/* 标签选择按钮区域样式margin-bottom: 25px;flex-direction:row; */
+.container h1 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 1.8rem;
+  text-align: center;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.container h1::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #42b983;
+  border-radius: 3px;
+}
 
 
 
@@ -317,7 +338,6 @@ function sentComment() {
   background-color: #359469;
 }
 
-/* 模态框样式：遮罩层 + 居中弹窗 */
 .modal {
   position: fixed;
   top: 0;
@@ -417,54 +437,90 @@ function sentComment() {
 
 /* 反馈列表容器样式 */
 .items {
-  /*display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;*/
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  /*width:800px;*/
+  gap: 28px;
+  /* 增大间距增强分隔 */
+  padding: 15px 0;
 }
 
-/* 单个反馈卡片样式 */
+/* 单个反馈卡片 - 强化视觉区分与层次感 */
 .item {
-  border: 1px solid #c9c7c7;
-  border-radius: 8px;
-  padding: 20px;
-  transition: box-shadow 0.3s ease;
+  border: 1px solid #6a6c6e;
+  border-radius: 12px;
+  padding: 24px;
+  background: #ffffff;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 卡片左侧装饰条 - 增强item辨识度 */
+.item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: #42b983;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .item:hover {
-  box-shadow: 10px 10px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.09);
+  transform: translateY(-4px);
+  border-color: #d1d5db;
 }
 
-/* 反馈标题样式 */
-.item h3 {
-  font-size: 16px;
-  color: #2c3e50;
-  margin-bottom: 15px;
+.item:hover::before {
+  opacity: 1;
+}
+
+/* 反馈卡片内容样式 */
+.item-messages {
+  margin-bottom: 18px;
+}
+
+.item h2 {
+  font-size: 19px;
+  color: #1e293b;
+  margin: 0 0 12px 0;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  /*-webkit-line-clamp: 2;*/
   overflow: hidden;
+}
+
+.item h6 {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+  display: flex;
+  gap: 15px;
 }
 
 /* 反馈详情按钮样式 */
 .item button {
-  padding: 6px 12px;
+  padding: 9px 18px;
   background-color: transparent;
   border: 1px solid #42b983;
   color: #42b983;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .item button:hover {
   background-color: #42b983;
   color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.2);
 }
 
 .content-background {
@@ -552,7 +608,15 @@ function sentComment() {
   border: 4px black;
   z-index: -1;} /* 放在弹窗后面 */
 
-
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+}
 
 
 .loading,
@@ -698,5 +762,17 @@ function sentComment() {
   .comment-area button {
     width: 100%;
   }
+}
+</style>
+<style>
+.el-message {
+  font-size: 40px !important;
+  padding: 2rem;
+  /* 根据需要调整大小 */
+}
+
+/* 单独设置消息内容的大小（如果需要） */
+.el-message__content {
+  font-size: 40px !important;
 }
 </style>
