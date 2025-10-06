@@ -2,7 +2,7 @@
   <div class="container">
 
     <div class="title">
-      <h1>学生服务平台[超级管理员]{{ globalStore.userType }}</h1>
+      <h1>学生服务平台[超级管理员]</h1>
     </div>
     <div class="navigate">
       <RouterLink :to="{ name: 'SuperAdminCRUD' }" class="navigate-btn">查看用户</RouterLink>

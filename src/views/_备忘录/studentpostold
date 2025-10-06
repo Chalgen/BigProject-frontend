@@ -114,7 +114,7 @@ async function post() {
     feedback_type: tagToCodeMap[selected.value],
     is_nicked: IsAnon.value,
     is_urgent: IsUrgent.value,
-    image_url: annexUrl.value,
+    image_urls: annexUrl.value,
     //attachments: selectedFile.value,
   }
   title.value = '';
@@ -199,6 +199,7 @@ const toggleTag = (tag) => {
 }*/
 
 </script>
+
 <style scoped>
 /*部分ai生成，最后会人力写orz */
 /* .container里面的都是手写的 */
@@ -749,17 +750,5 @@ h1 {
 
 .el-message--success .el-message__content {
   color: #16a34a !important;
-}
-</style>
-<style>
-.el-message {
-  font-size: 40px !important;
-  padding: 2rem;
-  /* 根据需要调整大小 */
-}
-
-/* 单独设置消息内容的大小（如果需要） */
-.el-message__content {
-  font-size: 40px !important;
 }
 </style>

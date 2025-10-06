@@ -21,7 +21,9 @@
     </div>
 
     <div class="items">
-      <div v-for="item in posts" :key="item.feedback_id" class="item">
+      <div v-for="item in posts" :key="item.feedback_id" class="item"
+        :style="{ color: getColor(item.feedback_status), backgroundColor: getBackgroundColor(item.feedback_status) }">
+
         <div class="item-messages">
           <h2>{{ item.title }}</h2>
           <h6>#{{ codeToTagMap[item.feedback_type] }} #{{ codeToStatusMap[item.feedback_status] }}</h6>
@@ -50,7 +52,8 @@
       </div>
       <div v-if="showPost.feedback_status == 2">
         <el-button type="primary" @click="openRating = true">提交评分</el-button>
-        <el-button type="primary" @click="returnComment = true">提交评论</el-button>
+        <!--<el-button type="primary" @click="returnComment = true">提交评论</el-button>-->
+
       </div>
 
       <div class="close-popup">
@@ -59,10 +62,10 @@
     </div>
     <el-dialog title="评论展示" v-model="openComment" :width="'70%'" :z-index='4000' :align-center="true">
       <div>
-        <div v-if="showPostComment.length == 0">暂无评论</div>
+        <div v-if="showPost.admin_reply.length == 0">暂无评论</div>
         <div v-else>
-          <div v-for="i in showPostComment">
-            {{ i.nickname }}:{{ i.content }}
+          <div v-for="i in showPost.admin_reply">
+            {{ i.admin.nickname }}:{{ i.content }}
           </div>
         </div>
       </div>
@@ -82,13 +85,15 @@
     <el-dialog title="提交评分" v-model="openRating" :width="'70%'" :z-index='4000' :align-center="true">
       <el-rate v-model="rating"></el-rate>
       <span>评分：{{ rating }}</span>
+      <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
       <el-button @click="updateRating()">提交评分</el-button>
     </el-dialog>
-    <el-dialog title="提交评论" class="returncomment-container" v-model="returnComment" :width="'70%'" :z-index='4000'
+    <!--<el-dialog title="提交评论" class="returncomment-container" v-model="returnComment" :width="'70%'" :z-index='4000'
       :align-center="true">
       <input type="text" v-model="commentContent" placeholder="点击输入评论..." class="comment-text"></input>
       <button @click="sentComment()">发送评论</button>
     </el-dialog>
+-->
 
 
 
@@ -104,19 +109,24 @@
 
 
   </div>
+  <el-pagination v-model:current-page="currentPage" :total="total" background layout="prev, pager, next"
+    @current-change="fetchPosts" size="large" />
 </template>
 
 <script setup>
 function out() {
   console.log(showPost.value.image_urls)
 }
+const total = ref(0);
+//const posts = ref([]);
+const currentPage = ref(1);
 //import()
 import { useRouter } from 'vue-router';
 import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { GetPostsByStudentIdApi, updateRatingApi } from '@/api/post';
+import { GetPostsApi, updateRatingApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -145,6 +155,25 @@ const codeToTagMap = {
   3002: "校园环境问题",
   3003: "校园安全问题",
 }
+/*function checkItems(posts) {
+  // 确保数据结构完整
+  if (!data || !data.data || !data.data.list || !Array.isArray(data.data.list)) {
+    console.log("数据结构不完整或list不存在");
+    return false;
+  }
+
+  // 遍历list数组检查条件
+  const hasMatchingItem = posts.some(item => {
+    // 注意属性名与原数据保持一致：feedback_status和is_confirmed
+    return item.feedback_status === 4 && item.is_confirmed === false;
+  });
+  if(hasMatchingItem){
+    alert("")
+  }
+  return hasMatchingItem;
+}
+*/
+// 执行检查并输出结果
 const codeToStatusMap = {
   0: "待处理",
   1: "处理中",
@@ -152,6 +181,24 @@ const codeToStatusMap = {
   3: "待审核垃圾信息",
   4: "已确认垃圾信息",
 }
+
+const getBackgroundColor = (val) => {
+  switch (val) {
+    case 0: return '#EEEEEE'
+    case 1: return '#CCFFCC'
+    case 2: return '#66FF00'
+    case 3: return '#FFFF99'//orange
+    case 4: return '#e99393'//red
+  }
+}
+const getColor = (val) => {
+  if (val == 0) {
+    return '#black'
+  } else {
+    return 'white'
+  }
+}
+
 const selected = ref([])
 
 const rating = ref(5)
@@ -170,20 +217,34 @@ const userData = ref(null);
 const errorMessage = ref('');
 const confirmPopup = ref(false)
 const PopupMessage = ref('')
-const nulltmp = ref();
+const nullTMP = ref();
 const fetchPosts = async () => {
   const GetPostMessage = {
     user_id: globalStore.userId
     //tags:
   }
   try {
-    const response = await GetPostsByStudentIdApi(1, globalStore.userId);
+    const response = await GetPostsApi(currentPage.value, nullTMP.value, nullTMP.value, nullTMP.value, nullTMP.value);
+    //const response = await GetPostsByStudentIdApi(currentPage.value, globalStore.userId);
     posts.value = response.data.data.list
-    errorMessage.value = null;
-    /*const ifWarning = posts.some(item => { return item.hasOwnProperty('warning_confirmed') && item.warning_confirmed == false && item.feedback_status == 4 });
-    if (ifWarning) {
-      alert("请您在发送反馈时确保内容的有效性和准确性，感谢您的理解和配合，如有异议，请重新反馈，请您点击未确认的垃圾帖子进行确认");
-    }*/
+    total.value = (response.data.data.totalPages) * 10,
+      errorMessage.value = null;
+    const ifWarning = ref(false);
+    const warningpage = ref("")
+    for (let i = 0; i < posts.length; i++) {
+      const item = posts[i];
+      // 检查条件：feedback_status为4且is_confirmed为false
+      if (item.feedback_status === 4 && item.is_confirmed === false) {
+        ifWarning.value = true; // 找到符合条件的项，立即返回true
+        console.log(item.feedback_status);
+        console.log(item.is_confirmed);
+        warningpage.value = item.feedback_id;
+      }
+    }
+    //const ifWarning = posts.some(item => { return item.warning_confirmed == false && item.feedback_status == 4 });
+    if (ifWarning.value == true) {
+      alert(`请您在发送反馈时确保内容的有效性和准确性，感谢您的理解和配合，如有异议，请重新反馈，请您点击未确认的垃圾帖子(${warningpage})进行确认`);
+    }
     ElMessage.success("加载完成!")
   } catch (err) {
     //errorMessage.value = err.response.data.message || '网络错误，请稍后再试';
@@ -194,9 +255,12 @@ const fetchPosts = async () => {
 }
 async function updateRating() {
   const ratingData = {
-    target_postid: showPost.feedback_id,
-    rate: rating,
+    admin_reply_id: globalStore.userId,
+    content: commentContent.value,
+    feedback_id: showPost.feedback_id,
+    score: rating.value,
   }
+  console.log(ratingData)
   try {
     const response = await updateRatingApi(ratingData);
     const { code, data, msg } = response.data;
@@ -218,6 +282,7 @@ async function updateRating() {
 onMounted(() => {
   selectall();
   fetchPosts();
+  //checkItems(posts);
 });
 
 const toggleTag = (tag) => {//维护slected{tags}数组
@@ -245,7 +310,9 @@ function openContent(postid) {
   openModal.value = true;
 }
 
-const user_id = globalStore.userId;
+
+
+/*const user_id = globalStore.userId;
 function sentComment() {
   const commentData = {
     content: {
@@ -255,7 +322,7 @@ function sentComment() {
   }
   commentContent.value = '';
   axios.post('', commentData)
-}
+}*/
 
 
 </script>
@@ -275,7 +342,7 @@ function sentComment() {
   overflow: hidden;
 
   h1 {
-    color: #2c3e50;
+    color: black;
     margin-bottom: 1.5rem;
     font-weight: 600;
     font-size: 1.8rem;
@@ -331,7 +398,19 @@ function sentComment() {
   border-radius: 3px;
 }
 
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+}
 
+.el-pagination {
+  justify-content: center;
+}
 
 
 .select-tag:hover {
@@ -485,7 +564,7 @@ function sentComment() {
 
 .item h2 {
   font-size: 19px;
-  color: #1e293b;
+  /*color: #1e293b;*/
   margin: 0 0 12px 0;
   line-height: 1.5;
   display: -webkit-box;
@@ -608,15 +687,6 @@ function sentComment() {
   border: 4px black;
   z-index: -1;} /* 放在弹窗后面 */
 
-.container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #10b981);
-}
 
 
 .loading,
@@ -762,6 +832,18 @@ function sentComment() {
   .comment-area button {
     width: 100%;
   }
+}
+</style>
+<style>
+.el-message {
+  font-size: 30px !important;
+  padding: 2rem;
+  /* 根据需要调整大小 */
+}
+
+/* 单独设置消息内容的大小（如果需要） */
+.el-message__content {
+  font-size: 30px !important;
 }
 </style>
 <style>

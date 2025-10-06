@@ -15,7 +15,7 @@ export const loginApi = (params: LoginParams) => {
     "headers": {//通过headers请求头的方式告知服务器 返回数据 是 JSON形式
       "Content-Type": "application/json",
     },
-    url: "/api/auth/login/student",
+    url: "/api/auth/login",
     //url: "/api/auth/login",
 
     //指定host之后的port
@@ -89,8 +89,48 @@ export const ChangeProfilePhotoApi = (data: FormData) => {
       "Authorization": 'Bearer ' + token,
       "Content-Type": "multipart/form-data",
     },
-    url: "/api/file/upload",
+    url: "/api/file/uploads",
     method: "post",
     data: data,
+  })
+}
+export const ChangeUserTypeApi = (id: string | number, data: FormData) => {
+  const globalStore = useGlobalStore();
+  const token = globalStore.token;
+  return request({
+    "headers": {
+      "Authorization": 'Bearer ' + token,
+      //"Content-Type": "multipart/form-data",
+    },
+    url: `/api/manage/user/${id}`,
+    method: "post",
+    data: data,
+  })
+}
+export const getUserListApi = (page: number, type: string[] | number[], username: string | number, nickname: string | number) => {
+  const globalStore = useGlobalStore();
+  const token = globalStore.token;
+  console.log(token)
+  return request({
+    "headers": {
+      "Authorization": 'Bearer ' + token,
+      //"Content-Type": "multipart/form-data",
+    },
+    url: `/api/manage/user/list?${page ? `page=${page}` : ""}${type ? `&userType=${type}` : ""}${username ? `&usernameKeyword=${username}` : ""}${nickname ? `&nicknameKeyword=${nickname}` : ""}`,
+    method: "get",
+  })
+}
+
+export const deleteUserApi = (id: string | number) => {
+  const globalStore = useGlobalStore();
+  const token = globalStore.token;
+  return request({
+    "headers": {
+      "Authorization": 'Bearer ' + token,
+      //"Content-Type": "multipart/form-data",
+    },
+    url: `/api/manage/user/${id}/delete`,
+    method: "delete",
+    //data: data,
   })
 }

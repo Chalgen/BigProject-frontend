@@ -4,7 +4,7 @@
     <div class="post-settings">
       <button class="select-tag" @click="showModal = true">点击选择标签</button>
       <div class="searching-container"><input type="text" v-model="keyWord" placeholder="'关键字查询'"></input>
-        <el-button @click="KeyWordSearch()">点击搜索</el-button>
+        <el-button @click="KeyWordSearch()" size="large">点击搜索</el-button>
       </div>
     </div>
 
@@ -78,10 +78,18 @@
     </el-dialog>
     <el-dialog title="附件展示" v-model="viewAttach" :width="'70%'" :z-index='4000' :align-center="true">
       <div>
-        <div v-if="showPostAttach.length == 0">暂无附件</div>
+        <img :src=testpng class="profile-photo">
+
+        <img :src="'http://47.99.206.67/file/uploads/fb3dd046-0eab-48a0-baaa-b7c51c5d85b2.PNG'" class="profile-photo">
+        <img :src="'http://47.99.206.67/file/uploads/fb3dd046-0eab-48a0-baaa-b7c51c5d85b2.PNG'" class="profile-photo">
+
+        <img :src="'http://localhost:5174/api/file/uploads/fb3dd046-0eab-48a0-baaa-b7c51c5d85b2.png'"
+          class="profile-photo">
+        <div v-if="showPost.image_urls.length == 0">暂无附件</div>
         <div v-else>
-          <div v-for="i in showPostAttach">
-            <img :src="i.attachPhotoURL" class="profile-photo">
+          <div v-for="i in showPost.image_urls">
+            <button @click="out(i), out(testpng)">显示</button>
+            <img :src=i class="profile-photo">
           </div>
         </div>
       </div>
@@ -114,13 +122,14 @@
 </template>
 
 <script setup>
+const testpng = ref('http://47.99.206.67/file/uploads/fb3dd046-0eab-48a0-baaa-b7c51c5d85b2.PNG');
 //import()
 import { useRouter } from 'vue-router';
 import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { checkingRequestApi, GetPostsByIdApi, confirmJunkApi, GetPostsByKeyWordApi } from '@/api/post';
+import { checkingRequestApi, GetPostsByIdApi, confirmJunkApi, GetPostsApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -139,6 +148,11 @@ const sentAttach = ref(false)
 const pageSize = ref(10);   // 每页条数
 const total = ref(0);       // 总条数
 const posts = ref([]);      // 当前页数据
+
+
+function out(i) {
+  console.log(i);
+}
 
 const allTags = ref(['宿舍设施报修', '教学设施报修', '公共设施报修', '校园网服务', '食堂餐饮问题', "校园环境问题", "校园安全问题", "意见与建议", "其他"])
 onMounted(() => {
@@ -180,7 +194,7 @@ const selectedcode = computed(() => {
 });
 
 
-const getColor = (val) => {
+/*const getColor = (val) => {
   switch (val) {
     case 0: return '#33CC00'
     case 1: return '#00CCCC'//湖青色
@@ -194,6 +208,22 @@ const getBackgroundColor = (val) => {
     return '#FFFF00'
   } else {
     return 'white'
+  }
+}*/
+const getBackgroundColor = (val) => {
+  switch (val) {
+    case 0: return '#EEEEEE'
+    case 1: return '#CCFFCC'
+    case 2: return '#66FF00'
+    case 3: return '#FFFF99'//orange
+    case 4: return '#CC0000'//red
+  }
+}
+const getColor = (val) => {
+  if (val == 0) {
+    return '#0033FF'
+  } else {
+    return 'black'
   }
 }
 const codeToStatusMap = {
@@ -209,18 +239,20 @@ const label = ref('')
 
 async function confirmJunk(status) {
   const junkData = {
-    feedback_id: showPost.feedback_id,
-    new_status: status,
+    //feedback_id: showPost.value.feedback_id,
+    feedback_status: status,
   }
   try {
-    const response = await confirmJunkApi(junkData);
+    const response = await confirmJunkApi(showPost.value.feedback_id, junkData);
     const { code, data, msg } = response.data;
     if (code == 200 && msg == 'success') {
       if (status == 0) {
         alert("成功将反馈认证为正常帖子!")
+        fetchPosts();
         //PopupMessage.value = "成功将反馈认证为正常帖子!";
       } else {
         alert("成功将反馈认证为垃圾帖子!")
+        fetchPosts();
         //PopupMessage.value = "成功将反馈认证为垃圾帖子!";
       }
       postPopup.value = true;
@@ -274,10 +306,12 @@ const confirmPopup = ref(false)
 const postPopup = ref(false);
 const PopupMessage = ref('')
 const currentPage = ref(1);
+
+const nullTMP = ref();
 const fetchPosts = async () => {
   try {
     const codeStr = selectedcode.value.join(',');
-    const response = await GetPostsByIdApi(currentPage.value, globalStore.userId, codeStr);
+    const response = await GetPostsApi(currentPage.value, nullTMP.value, nullTMP.value, nullTMP.value, codeStr);
     posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
       console.log(total)
     errorMessage.value = null;
@@ -343,7 +377,7 @@ const keyWord = ref('');
 async function KeyWordSearch() {
   try {
     currentPage.value = 1;
-    const response = await GetPostsByKeyWordApi(currentPage.value, 0, keyWord.value);
+    const response = await GetPostsApi(currentPage.value, nullTMP.value, nullTMP.value, keyWord.value, nullTMP.value);
     posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
       console.log(total)
     errorMessage.value = null;
@@ -360,25 +394,23 @@ async function KeyWordSearch() {
 </script>
 
 <style scoped>
+.el-pagination {
+  justify-content: center;
+}
+
 .container {
-  .el-pagination {
-    justify-content: center;
-  }
 
   display: flex;
   flex-direction: column;
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI',
-  Tahoma,
-  Geneva,
-  Verdana,
-  sans-serif;
-  gap: 20px;
+  gap: 30px;
+  max-width: 850px;
+  margin: 2.5rem auto;
+  padding: 2.2rem;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
 
   h1 {
     color: #2c3e50;
@@ -394,7 +426,7 @@ async function KeyWordSearch() {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 40px;
 
     .select-tag {
       width: 130px;
@@ -407,6 +439,35 @@ async function KeyWordSearch() {
       font-size: 14px;
       cursor: pointer;
       transition: background-color 0.3s ease;
+    }
+
+    .searching-container input {
+      flex-grow: 1;
+      padding: 0.6rem 1rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .searching-container input:focus {
+      outline: none;
+      border-color: #42b983;
+      box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+    }
+
+    .searching-container input::placeholder {
+      color: #b0b0b0;
+      font-style: italic;
+    }
+
+    .el-button {
+      transition: all 0.3s ease !important;
+    }
+
+    .el-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
     }
   }
 }
@@ -440,6 +501,40 @@ async function KeyWordSearch() {
     justify-items: center;
   }
 }
+
+.container h1 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 1.8rem;
+  text-align: center;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.container h1::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #42b983;
+  border-radius: 3px;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+}
+
 
 .logout-popup {
   position: fixed;
@@ -591,56 +686,91 @@ async function KeyWordSearch() {
   background-color: #359469;
 }
 
-/* 反馈列表容器样式 */
 .items {
-  /*display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;*/
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  /*width:800px;*/
+  gap: 28px;
+  /* 增大间距增强分隔 */
+  padding: 15px 0;
 }
 
-/* 单个反馈卡片样式 */
+/* 单个反馈卡片 - 强化视觉区分与层次感 */
 .item {
-  border: 1px solid #c9c7c7;
-  border-radius: 8px;
-  padding: 20px;
-  transition: box-shadow 0.3s ease;
+  border: 1px solid #6a6c6e;
+  border-radius: 12px;
+  padding: 24px;
+  /*background: #ffffff;*/
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 卡片左侧装饰条 - 增强item辨识度 */
+.item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: #42b983;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .item:hover {
-  box-shadow: 10px 10px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.09);
+  transform: translateY(-4px);
+  border-color: #d1d5db;
 }
 
-/* 反馈标题样式 */
-.item h3 {
-  font-size: 16px;
-  color: #2c3e50;
-  margin-bottom: 15px;
+.item:hover::before {
+  opacity: 1;
+}
+
+/* 反馈卡片内容样式 */
+.item-messages {
+  margin-bottom: 18px;
+}
+
+.item h2 {
+  font-size: 19px;
+  /*color: #1e293b;*/
+  margin: 0 0 12px 0;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  /*-webkit-line-clamp: 2;*/
   overflow: hidden;
+}
+
+.item h6 {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+  display: flex;
+  gap: 15px;
 }
 
 /* 反馈详情按钮样式 */
 .item button {
-  padding: 6px 12px;
+  padding: 9px 18px;
   background-color: transparent;
   border: 1px solid #42b983;
   color: #42b983;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .item button:hover {
   background-color: #42b983;
   color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.2);
 }
 
 .content-background {
@@ -842,5 +972,17 @@ async function KeyWordSearch() {
   .comment-area button {
     width: 100%;
   }
+}
+</style>
+<style>
+.el-message {
+  font-size: 40px !important;
+  padding: 2rem;
+  /* 根据需要调整大小 */
+}
+
+/* 单独设置消息内容的大小（如果需要） */
+.el-message__content {
+  font-size: 40px !important;
 }
 </style>

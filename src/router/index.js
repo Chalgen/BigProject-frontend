@@ -143,20 +143,26 @@ router.beforeEach((to, from, next) => {
           console.log(globalStore.userType)
           next()
         } else {
-          alert('没有访问权限，请联系管理员')
+
           switch (globalStore.userType) {
             case 'STUDENT':
-              next('/HomePages/Student/StudentHome')
+              next()
+              //next('/HomePages/Student/StudentHome')
               break
             case 'ADMIN':
-              next('/HomePages/GeneralAdmin/GeneralAdminHome')
+              next()
+              //next('/HomePages/GeneralAdmin/GeneralAdminHome')
               break
-            case 'SUPERADMIN':
-              next('/HomePages/SuperAdmin/SuperAdminHome')
+            case 'SUPER_ADMIN':
+              next()
+              //next('/HomePages/SuperAdmin/SuperAdminHome')
               break
             default:
+              alert('没有访问权限，请联系管理员')
               next('/login')
           }
+          console.log(globalStore)
+
         }
       } else {
         next()

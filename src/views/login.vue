@@ -34,7 +34,7 @@
                         <p>用户编号：{{ userData.user_id }}</p>
                         <p>普通管理员</p>
                     </div>
-                    <div v-else-if="userType == 'SUPERADMIN'">
+                    <div v-else-if="userType == 'SUPER_ADMIN'">
                         <p>用户编号：{{ userData.user_id }}</p>
                         <p>超级管理员</p>
                     </div>
@@ -176,7 +176,7 @@ function redirectByUserType(userType) {
         case "ADMIN":
             goToGeneralAdminHome();
             break;
-        case "SUPERADMIN":
+        case "SUPER_ADMIN":
             goToSuperAdminHome();
             break;
         case "STUDENT":

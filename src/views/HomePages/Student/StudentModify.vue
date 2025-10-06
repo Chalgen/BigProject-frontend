@@ -23,8 +23,10 @@
           </div>
           <div class="repassword">
             <div><span>&#12288;原密码：</span><input type="password" v-model="oldpassword" class="oldpassword-input"></div>
-            <div><span>修改密码：</span><input type="password" v-model="newpassword" class="password-input"></div>
-            <div><span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input">
+            <div><span>修改密码：</span><input type="password" v-model="newpassword" class="password-input"
+                :placeholder="'密码长度应在7-15位之间'"></div>
+            <div><span>确认密码：</span><input type="password" v-model="confirmpassword" class="confirm-password-input"
+                :placeholder="'密码长度应在7-15位之间'">
             </div>
           </div>
           <div class="button-container">
@@ -162,20 +164,29 @@ async function revisePassword() {
     password: oldpassword.value,
     new_password: newpassword.value,
   }
+  if (confirmpassword.value != newpassword.value) {
+    PopupMessage.value = "两次输入的密码不匹配！";
+    confirmPopup.value = true;
+    return;
+  }
+  if (newpassword.value.length > 15 || newpassword.value.length < 7) {
+    PopupMessage.value = "密码长度应在7-15位之间！";
+    confirmPopup.value = true;
+    return;
+  }
   try {
     const response = await ChangeUserPasswordApi(reviseData);
     const { code, data, msg } = response.data;
     if (code == 200 && msg == 'success') {
-      confirmPopup.value = true;
       PopupMessage.value = "修改成功!";
-    } else {
       confirmPopup.value = true;
+    } else {
       PopupMessage.value = "修改失败！";
-      //errorMessage.value=data.
+      confirmPopup.value = true;
     }
   } catch (error) {
-    confirmPopup.value = true;
     PopupMessage.value = "未连接到服务器";
+    confirmPopup.value = true;
   }
 }
 
@@ -317,5 +328,17 @@ const handleUpload = async ({ file }) => {
       }
     }
   }
+}
+</style>
+<style>
+.el-message {
+  font-size: 40px !important;
+  padding: 2rem;
+  /* 根据需要调整大小 */
+}
+
+/* 单独设置消息内容的大小（如果需要） */
+.el-message__content {
+  font-size: 40px !important;
 }
 </style>

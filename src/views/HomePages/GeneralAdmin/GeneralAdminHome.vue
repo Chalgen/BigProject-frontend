@@ -12,7 +12,7 @@
 
     <div class="navigate">
       <RouterLink :to="{ name: 'GeneralAdminView' }" class="navigate-btn">浏览所有反馈</RouterLink>
-      <RouterLink :to="{ name: 'GeneralAdminCheck' }" class="navigate-btn">我解决的反馈</RouterLink>
+      <RouterLink :to="{ name: 'GeneralAdminCheck' }" class="navigate-btn">我处理的反馈</RouterLink>
       <RouterLink :to="{ name: 'GeneralAdminModify' }" class="navigate-btn">修改个人信息</RouterLink>
     </div>
 

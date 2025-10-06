@@ -53,15 +53,16 @@
           codeToStatusMap[showPost.feedback_status] }}</h4>
         <div v-if="showPost.feedback_status == 1">
           <h5>created_by:{{ showPost.is_nicked == 1 ? "匿名用户" :
-            showPost.student.username }}&#12288;&#12288;[处理中]by:</h5>
+            showPost.student.user_id + " 昵称：" + showPost.student.nickname }}&#12288;&#12288;[处理中]by:</h5>
         </div>
         <div v-else-if="showPost.feedback_status == 2">
           <h5>created_by:{{ showPost.is_nicked == 1 ? "匿名用户" :
-            showPost.student.username }}&#12288;&#12288;[已处理]by:&#12288;&#12288;评分:</h5>
+            showPost.student.user_id + " 昵称：" + showPost.student.nickname }}&#12288;&#12288;[已处理]by:&#12288;&#12288;评分:
+          </h5>
         </div>
         <div v-else>
           <h5>created_by:{{ showPost.is_nicked == 1 ? "匿名用户" :
-            showPost.student.username }}</h5>
+            showPost.student.user_id + " 昵称：" + showPost.student.nickname }}</h5>
         </div>
         <h5 class="feedback-time"> 创建时间：{{ showPost.created_at }}&#12288;&#12288;更新时间:{{ showPost.updated_at }}</h5>
       </div>
@@ -135,7 +136,7 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { checkingRequestApi, GetPostsByIdApi, GetPostsByKeyWordApi } from '@/api/post';
+import { checkingRequestApi, GetPostsByIdApi, GetPostsApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -286,13 +287,13 @@ function openContent(postid) {
   showPost.value = posts.value.find(item => item.feedback_id == postid);
   openModal.value = true;
 }
-
+const nullTMP = ref();
 const fetchPosts = async () => {
   try {
     console.log(selectedcode.value)
     const tagcode = selectedcode.value.join(',');
     //const response = await GetPostsByIdApi(currentPage.value, globalStore.userId);
-    const response = await GetPostsByIdApi(currentPage.value, 0, tagcode);
+    const response = await GetPostsApi(currentPage.value, nullTMP.value, nullTMP.value, nullTMP.value, selectedcode.value);
     posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
       console.log(total)
     errorMessage.value = null;
@@ -304,6 +305,7 @@ const fetchPosts = async () => {
   }
 }
 async function sentChecking() {
+  console.log(value);
   const checkingData = {
     feedback_status: value.value,
     admin_reply: {
@@ -311,7 +313,7 @@ async function sentChecking() {
     }
   }
   try {
-    const response = await checkingRequestApi(globalStore.userId, checkingData);
+    const response = await checkingRequestApi(showPost.value.feedback_id, checkingData);
     const { code, data, msg } = response.data;
     if (code == 200 && msg == 'success') {
       postPopup.value = true;
@@ -325,12 +327,14 @@ async function sentChecking() {
     postPopup.value = true;
     PopupMessage.value = "未连接到服务器";
   }
+  fetchPosts();
 }
 
 async function KeyWordSearch() {
   try {
     currentPage.value = 1;
-    const response = await GetPostsByKeyWordApi(currentPage.value, 0, keyWord.value);
+    console.log(keyWord.value);
+    const response = await GetPostsApi(currentPage.value, nullTMP.value, nullTMP.value, keyWord.value, nullTMP.value);
     posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
       console.log(total)
     errorMessage.value = null;
@@ -798,5 +802,17 @@ async function KeyWordSearch() {
   .comment-area button {
     width: 100%;
   }
+}
+</style>
+<style>
+.el-message {
+  font-size: 40px !important;
+  padding: 2rem;
+  /* 根据需要调整大小 */
+}
+
+/* 单独设置消息内容的大小（如果需要） */
+.el-message__content {
+  font-size: 40px !important;
 }
 </style>

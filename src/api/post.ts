@@ -35,14 +35,14 @@ export const GetPostsByStudentIdApi = (wpage: string | number, id: string | numb
         method: "get",
     })
 }
-export const GetPostsByKeyWordApi = (wpage: string | number, id: string | number, keyword: string) => {
+export const GetPostsApi = (wpage: string | number, studentid: string | number, adminid: string | number, keyword: string, tags: number[] | string[]) => {
     const globalStore = useGlobalStore();
     const token = globalStore.token;
     return request({
         "headers": {
             "Authorization": 'Bearer ' + token,
         },
-        url: `/api/feedback?page=${wpage}&acceptedByUserId=${id}&keyword=${keyword}`,
+        url: `/api/feedback?page=${wpage}${studentid ? `&studentId=${studentid}` : ""}${adminid ? `&adminId=${adminid}` : ""}${keyword ? `&titleKeyword=${keyword}` : ""}${tags ? `&typeTags=${tags}` : ""}`,
         method: "get",
     })
 }
@@ -89,7 +89,7 @@ export const updateRatingApi = (data: FormData) => {
         "headers": {
             "Authorization": 'Bearer ' + token,
         },
-        url: "/api/user/",
+        url: "/api/rating/publish",
         method: "post",
         data: data,
     })
@@ -106,14 +106,14 @@ export const receiveFeedbackApi = (data: FormData) => {
         data: data,
     })
 }
-export const confirmJunkApi = (data: FormData) => {
+export const confirmJunkApi = (id: string | number, data: FormData) => {
     const globalStore = useGlobalStore();
     const token = globalStore.token;
     return request({
         "headers": {
             "Authorization": 'Bearer ' + token,
         },
-        url: "/api/user/confirmJunk",
+        url: `/api/manage/feedback/${id}/process`,
         method: "post",
         data: data,
     })

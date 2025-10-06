@@ -1,6 +1,6 @@
 <template scoped>
   <div class="container">
-    <h1>所有学生反馈</h1>
+    <h1>我处理的反馈</h1>
     <div class="post-settings">
       <button class="select-tag" @click="showModal = true">点击选择标签</button>
     </div>
@@ -56,6 +56,7 @@
         <el-button type="primary" @click="viewAttach = true">查看附件</el-button>
         <div v-if="showPost.feedback_status == 1">
           <el-button type="primary" @click="cancelreceive(showPost.feedback_id)">取消接单</el-button>
+          <el-button type="primary" @click="changeFeedbackStatus(showPost.feedback_id, 2)">确认完成反馈</el-button>
         </div>
 
         <!--<el-button type="primary" @click="sentAttach = true">发送附件</el-button>-->
@@ -104,7 +105,7 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { GetPostsByIdApi, checkingRequestApi } from '@/api/post';
+import { GetPostsApi, checkingRequestApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -178,9 +179,10 @@ const errorMessage = ref('');
 const confirmPopup = ref(false)
 const PopupMessage = ref('')
 const postPopup = ref(false)
+const nullTMP = ref();
 const fetchPosts = async () => {
   try {
-    const response = await GetPostsByIdApi(currentPage.value, globalStore.userId);
+    const response = await GetPostsApi(currentPage.value, nullTMP.value, globalStore.userId, nullTMP.value, nullTMP.value);
     posts.value = response.data.data.list, total.value = (response.data.data.totalPages) * 10,
       console.log(total)
     posts.value = response.data.data.list
@@ -246,6 +248,29 @@ async function cancelreceive() {
     } else {
       postPopup.value = true;
       PopupMessage.value = "取消失败！";
+      //errorMessage.value=data.
+    }
+  } catch (error) {
+    postPopup.value = true;
+    PopupMessage.value = "未连接到服务器";
+  }
+}
+async function changeFeedbackStatus(id, targetStatus) {
+  const checkingData = {
+    feedback_status: targetStatus,
+    admin_reply: {
+      content: nulltmp.value,
+    }
+  }
+  try {
+    const response = await checkingRequestApi(id, checkingData);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      postPopup.value = true;
+      PopupMessage.value = "成功完成该反馈!";
+    } else {
+      postPopup.value = true;
+      PopupMessage.value = "更新失败！";
       //errorMessage.value=data.
     }
   } catch (error) {
@@ -697,5 +722,17 @@ async function cancelreceive() {
   .comment-area button {
     width: 100%;
   }
+}
+</style>
+<style>
+.el-message {
+  font-size: 40px !important;
+  padding: 2rem;
+  /* 根据需要调整大小 */
+}
+
+/* 单独设置消息内容的大小（如果需要） */
+.el-message__content {
+  font-size: 40px !important;
 }
 </style>
