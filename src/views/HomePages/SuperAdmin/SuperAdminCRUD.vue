@@ -22,7 +22,7 @@
         </el-checkbox-group>
       </div>
     </div>
-    <!-- :key 防止渲染出错;i就代表当前循环到的 “单个用户”;i.后面的表示i的一个关键属性 -->
+    <!-- :key 防止渲染出错;i就代表当前循环到的 “单个用户”（比如循环到第一个用户，i就是第一个用户的所有数据;循环到第二个，i就是第二个的);i.后面的表示i的一个关键属性 -->
     <div v-for="i in allFeed" :key="i" class="item">
       <h2>昵称：{{ i.nickname || 'N/A' }}</h2>
       <span>用户名：{{ i.username }}</span>
@@ -104,24 +104,20 @@ async function getUserList() {
       'http://127.0.0.1:4523/m1/7120556-6843396-default/api/manage/user/list',
       {
         params: {
-          page: 1, // 分页参数：查询第1页
-          size: 10, // 分页参数：每页显示10条数据
-          usernameKeyword: keyword.value,// 查询参数：用户名关键词
+          page: 1,
+          size: 10,
+          usernameKeyword: keyword.value,
         }
       }
     );
-    // 更新用户列表：将查询到的用户数据赋值给allFeed，页面显示查询结果
     allFeed.value = response.data.data.list;
-    // 清空错误信息
     errorMessage.value = '';
-    // 错误处理：捕获并提示查询错误
   } catch (err) {
     errorMessage.value = err.response?.data?.message || '获取账号失败，请重试';
     console.error('请求失败：', err);
   }
 }
 
-// 异步函数：按昵称关键词查询用户
 async function GetUserList() {
   try {
     const response = await axios.get(
@@ -134,11 +130,8 @@ async function GetUserList() {
         }
       }
     );
-    // 更新用户列表：显示昵称查询结果
     allFeed.value = response.data.data.list;
-    // 清空错误信息
     errorMessage.value = '';
-    // 错误处理：捕获并提示查询错误
   } catch (err) {
     errorMessage.value = err.response?.data?.message || '获取账号失败，请重试';
     console.error('请求失败：', err);
@@ -200,11 +193,9 @@ async function ChangeType(id, typekind) {
   }
 }
 
-// 异步函数：提交选中的账号类型（点击弹窗“确认”按钮触发，参数`selectedType`为选中的类型数组）
 async function MakeSure(selectedType) {
   if (!selectedType || selectedType.length === 0) {
     ElMessage.warning('请先选择账号类型');
-    // 退出函数：不执行后续提交逻辑
     return;
   }
 
@@ -236,7 +227,7 @@ async function MakeSure(selectedType) {
 .del-btn {
   color: red;
   font-size: 13px;
-  cursor: pointer; /* 鼠标悬浮时显示“指针”样式，提示可点击 */
+  cursor: pointer;
 }
 
 .type-land {
@@ -245,17 +236,17 @@ async function MakeSure(selectedType) {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5); /* 黑色半透明背景（透明度0.5），模糊底层内容 */
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* 层级设为1000：确保遮罩层在所有元素上方 */
+  z-index: 1000;
 }
 
 .type-main {
-  padding: 25px 30px;/* 内边距：上下25px、左右30px，分隔复选框与弹窗边框 */
+  padding: 25px 30px;
   display: flex;
-  gap: 30px;/* 间距：复选框之间保留30px空隙，避免拥挤 */
+  gap: 30px;
   justify-content: center;
 }
 
@@ -267,7 +258,7 @@ async function MakeSure(selectedType) {
   width: 400px;
   background-color: white;
   border-radius: 8px;
-  overflow: hidden; /* 溢出隐藏：防止子元素（如头部）超出弹窗边界 */
+  overflow: hidden;
 }
 
 .type-header {

@@ -200,8 +200,6 @@ const toggleTag = (tag) => {
 
 </script>
 <style scoped>
-/*部分ai生成，最后会人力写orz */
-/* .container里面的都是手写的 */
 .container {
   max-width: 850px;
   margin: 2rem auto;

@@ -96,8 +96,6 @@
       <button @click="postPopup = false" class="close-success-popup">确认</button>
     </div>
   </div>
-  <el-pagination v-model:current-page="currentPage" :total="total" background layout="prev, pager, next"
-    @current-change="fetchPosts" size="large" />
 </template>
 
 <script setup>
@@ -119,7 +117,6 @@ const showModal = ref(false)
 const openComment = ref(false)
 const viewAttach = ref(false)
 const sentAttach = ref(false)
-
 
 const total = ref(0);
 //const posts = ref([]);
@@ -285,9 +282,7 @@ async function changeFeedbackStatus(id, targetStatus) {
 </script>
 
 <style scoped>
-/*部分ai生成，最后会人力写orz */
 
-/* container下的都是手写 */
 .container {
   display: flex;
   flex-direction: column;
@@ -357,6 +352,39 @@ async function changeFeedbackStatus(id, targetStatus) {
     flex-direction: column;
     justify-items: center;
   }
+}
+
+.container h1 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 1.8rem;
+  text-align: center;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.container h1::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #42b983;
+  border-radius: 3px;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
 }
 
 
@@ -462,56 +490,93 @@ async function changeFeedbackStatus(id, targetStatus) {
   background-color: #359469;
 }
 
-/* 反馈列表容器样式 */
 .items {
-  /*display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;*/
+  font-size: 3vw;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  /*width:800px;*/
+  gap: 28px;
+  /* 增大间距增强分隔 */
+  padding: 15px 0;
 }
 
-/* 单个反馈卡片样式 */
+/* 单个反馈卡片 - 强化视觉区分与层次感 */
 .item {
-  border: 1px solid #c9c7c7;
-  border-radius: 8px;
-  padding: 20px;
-  transition: box-shadow 0.3s ease;
+  font-size: 3vw;
+  border: 1px solid #6a6c6e;
+  border-radius: 12px;
+  padding: 24px;
+  /*background: #ffffff;*/
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 卡片左侧装饰条 - 增强item辨识度 */
+.item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: #42b983;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .item:hover {
-  box-shadow: 10px 10px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.09);
+  transform: translateY(-4px);
+  border-color: #d1d5db;
 }
 
-/* 反馈标题样式 */
-.item h3 {
-  font-size: 16px;
-  color: #2c3e50;
-  margin-bottom: 15px;
+.item:hover::before {
+  opacity: 1;
+}
+
+/* 反馈卡片内容样式 */
+.item-messages {
+  margin-bottom: 18px;
+}
+
+.item h2 {
+  font-size: 19px;
+  /*color: #1e293b;*/
+  margin: 0 0 12px 0;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  /*-webkit-line-clamp: 2;*/
   overflow: hidden;
+}
+
+.item h6 {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+  display: flex;
+  gap: 15px;
 }
 
 /* 反馈详情按钮样式 */
 .item button {
-  padding: 6px 12px;
+  padding: 9px 18px;
   background-color: transparent;
   border: 1px solid #42b983;
   color: #42b983;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .item button:hover {
   background-color: #42b983;
   color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.2);
 }
 
 .content-background {

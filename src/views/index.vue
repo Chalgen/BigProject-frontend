@@ -1,55 +1,56 @@
-<script setup>
-import { useRouter } from 'vue-router';
-    import { useGlobalStore } from '@/store/global'
-    const router = useRouter()
-    import {ref,onMounted,getCurrentInstance} from 'vue';
-</script>
-
 <template scoped>
-    
-    <div class="oricon">
-        欢迎使用学生服务平台
-        <br></br>
-        制作人：
-        <br></br>
-        <div>
-          <!--<button @click="gotologin2()">开始登陆</button>-->
-          <router-link :to="{path:'login'}" class="btn" title="开始登录" aria-label="开始登录">开始登陆</router-link>
-          
-        </div>
-        
+  <div class="oricon" style="font-family: kaiti;">
+    <div class="card">
+      <div class="title">欢迎使用学生服务平台</div>
+      <router-link :to="{path:'login'}" class="btn" title="开始登录" aria-label="开始登录">开始登陆</router-link>
     </div>
+  </div>
 </template>
 
 <style scoped>
-.oricon{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  
-  position: absolute;
-    top: 0;
-    left: 0;
-  
-    min-width: 100%;
-    min-height: 100%;
-    /*object-fit: cover; background-color:red;
-    
-    width: auto;
-    height: auto; 覆盖容器，可能裁剪边缘但保持比例 object-position: center;  */
-    
+.oricon {
+  display: flex;
+  min-height: 100%;
+  min-width: 100%;
+  background-image: url('/zheyi.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
 }
+
+.card {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.title {
+  font-size: 40px;
+  margin-bottom: 30px;
+  font-family: "kaiti";
+}
+
 .btn {
-  display:flex;
-  padding: 8px 16px;
-  background-color: #42b983;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: lightgreen;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
   color: white;
-  border: none;
-  border-radius: 4px;
-  /*cursor: pointer;*/
-  text-decoration: none; 
+}
+
+.btn:hover {
+  background-color: green;
 }
 </style>
