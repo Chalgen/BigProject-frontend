@@ -131,3 +131,15 @@ export const uploadAnnexPhotoApi = (data: FormData) => {
         data: data,
     })
 }
+
+export const changeConfirmStatusApi = (id: string | number) => {
+    const globalStore = useGlobalStore();
+    const token = globalStore.token;
+    return request({
+        "headers": {
+            "Authorization": 'Bearer ' + token,
+        },
+        url: `/api/feedback/${id}/confirm`,
+        method: "post",
+    })
+}

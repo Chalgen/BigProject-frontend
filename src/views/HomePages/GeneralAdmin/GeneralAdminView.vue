@@ -28,7 +28,7 @@
         <h2>{{ item.title }}</h2>
         <h6>#{{ codeToTagMap[item.feedback_type] }} #{{ codeToStatusMap[item.feedback_status] }}</h6>
         <!--{{ item.isSolved ? "已解决" : "未解决" }}后续可以通过整个页面可视化信息显示解决状态-->
-        <h6>{{ item.is_nicked == true ? "匿名" : item.student.username }}</h6>
+        <h6>{{ item.is_nicked == true ? "匿名" : item.student ? item.student.nickname : "" }}</h6>
         <button @click="openContent(item.feedback_id)">进入反馈详情>>></button>
       </div>
     </div>
@@ -86,10 +86,10 @@
     <!--el-dialog评论、附件、处理-------------------------------------------------------------------------->
     <el-dialog title="评论展示" v-model="openComment" :width="'70%'" :z-index='4000' :align-center="true">
       <div>
-        <div v-if="showPostComment.length == 0">暂无评论</div>
+        <div v-if="showPost.admin_reply.length == 0">暂无评论</div>
         <div v-else>
-          <div v-for="i in showPostComment">
-            {{ i.nickname }}:{{ i.content }}
+          <div v-for="i in showPost.admin_reply">
+            {{ i.admin.nickname }}:{{ i.content }}
           </div>
         </div>
       </div>

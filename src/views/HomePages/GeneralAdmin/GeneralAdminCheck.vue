@@ -71,10 +71,10 @@
     </div>
     <el-dialog title="评论展示" v-model="openComment" :width="'70%'" :z-index='4000' :align-center="true">
       <div>
-        <div v-if="showPostComment.length == 0">暂无评论</div>
+        <div v-if="showPost.admin_reply.length == 0">暂无评论</div>
         <div v-else>
-          <div v-for="i in showPostComment">
-            {{ i.nickname }}:{{ i.content }}
+          <div v-for="i in showPost.admin_reply">
+            {{ i.admin.nickname }}:{{ i.content }}
           </div>
         </div>
       </div>

@@ -42,10 +42,17 @@
         <h4 class="show-message">#{{ codeToTagMap[showPost.feedback_type] }}&#12288;#{{
           codeToStatusMap[showPost.feedback_status] }}</h4>
         <div v-if="showPost.feedback_status == 1">
-          <h5>[处理中]&#12288;by:</h5>
+          <h5>created_by:{{ showPost.is_nicked == 1 || showPost.student == '' ? "匿名用户" :
+            showPost.student.user_id + " 昵称：" + showPost.student.nickname }}&#12288;&#12288;[处理中]by:</h5>
         </div>
         <div v-else-if="showPost.feedback_status == 2">
-          <h5>[已处理]&#12288;by:评分:</h5>
+          <h5>created_by:{{ showPost.is_nicked == 1 || showPost.student == '' ? "匿名用户" :
+            showPost.student.user_id + " 昵称：" + showPost.student.nickname }}&#12288;&#12288;[已处理]by:&#12288;&#12288;评分:
+          </h5>
+        </div>
+        <div v-else>
+          <h5>created_by:{{ showPost.is_nicked == 1 || !showPost.student ? "匿名用户" :
+            showPost.student.user_id + " 昵称：" + showPost.student.nickname }}</h5>
         </div>
         <h5 class="feedback-time"> 创建时间：{{ showPost.created_at }}&#12288;&#12288;更新时间:{{ showPost.updated_at }}</h5>
       </div>
@@ -68,10 +75,10 @@
     </div>
     <el-dialog title="评论展示" v-model="openComment" :width="'70%'" :z-index='4000' :align-center="true">
       <div>
-        <div v-if="showPostComment.length == 0">暂无评论</div>
+        <div v-if="showPost.admin_reply.length == 0">暂无评论</div>
         <div v-else>
-          <div v-for="i in showPostComment">
-            {{ i.nickname }}:{{ i.content }}
+          <div v-for="i in showPost.admin_reply">
+            {{ i.admin.nickname }}:{{ i.content }}
           </div>
         </div>
       </div>
@@ -403,7 +410,7 @@ async function KeyWordSearch() {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  max-width: 850px;
+  max-width: 70vw;
   margin: 2.5rem auto;
   padding: 2.2rem;
   background: linear-gradient(145deg, #ffffff, #f8fafc);
@@ -412,14 +419,19 @@ async function KeyWordSearch() {
   position: relative;
   overflow: hidden;
 
+
   h1 {
     color: #2c3e50;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1vw;
     font-weight: 600;
-    font-size: 1.8rem;
+    font-size: 1vw;
     text-align: center;
     padding-bottom: 0.8rem;
     border-bottom: 1px solid #f0f0f0;
+  }
+
+  h2 {
+    font-size: clamp(16px, 4vw, 50px);
   }
 
   .post-settings {
@@ -687,6 +699,7 @@ async function KeyWordSearch() {
 }
 
 .items {
+  font-size: 3vw;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -696,6 +709,7 @@ async function KeyWordSearch() {
 
 /* 单个反馈卡片 - 强化视觉区分与层次感 */
 .item {
+  font-size: 3vw;
   border: 1px solid #6a6c6e;
   border-radius: 12px;
   padding: 24px;

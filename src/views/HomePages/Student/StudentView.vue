@@ -53,9 +53,10 @@
       <div v-if="showPost.feedback_status == 2">
         <el-button type="primary" @click="openRating = true">提交评分</el-button>
         <!--<el-button type="primary" @click="returnComment = true">提交评论</el-button>-->
-
       </div>
-
+      <div v-if="showPost.feedback_status == 4 && showPost.is_confirmed == false">
+        <el-button type="primary" @click="changeConfirmStatus(showPost.feedback_id)">确认垃圾信息</el-button>
+      </div>
       <div class="close-popup">
         <button @click="openModal = false" class="close-popup-button">关闭反馈</button>
       </div>
@@ -75,8 +76,11 @@
       <div>
         <div v-if="showPost.image_urls.length == 0">暂无附件</div>
         <div v-else>
+          <img :src=tmptmp class="profile-photo">
+
+
           <div v-for="i in showPost.image_urls">
-            <img :src="i" class="profile-photo">
+            <img :src=i class="profile-photo">
           </div>
         </div>
       </div>
@@ -114,6 +118,7 @@
 </template>
 
 <script setup>
+const tmptmp = ref('http://47.99.206.67/uploads/a1177a41-1ef1-46ba-a4f7-d5a8ca2d98c0.JPG')
 function out() {
   console.log(showPost.value.image_urls)
 }
@@ -126,7 +131,7 @@ import { useGlobalStore } from '@/store/global'
 const router = useRouter()
 import { ref, onMounted, getCurrentInstance, computed } from 'vue';
 import axios from "axios";
-import { GetPostsApi, updateRatingApi } from '@/api/post';
+import { GetPostsApi, updateRatingApi, changeConfirmStatusApi } from '@/api/post';
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
@@ -188,14 +193,14 @@ const getBackgroundColor = (val) => {
     case 1: return '#CCFFCC'
     case 2: return '#66FF00'
     case 3: return '#FFFF99'//orange
-    case 4: return '#e99393'//red
+    case 4: return '#CC0000'//red
   }
 }
 const getColor = (val) => {
   if (val == 0) {
-    return '#black'
+    return '#0033FF'
   } else {
-    return 'white'
+    return 'black'
   }
 }
 
@@ -218,21 +223,43 @@ const errorMessage = ref('');
 const confirmPopup = ref(false)
 const PopupMessage = ref('')
 const nullTMP = ref();
+async function changeConfirmStatus(postid) {
+  try {
+    const response = await changeConfirmStatusApi(postid);
+    const { code, data, msg } = response.data;
+    if (code == 200 && msg == 'success') {
+      ElMessage.success('确认成功')
+      fetchPosts();
+    } else {
+      ElMessage.error(msg || '确认失败')
+    }
+  } catch (error) {
+    ElMessage.error('未连接到服务器：' + (error.response?.data?.msg || '网络错误'))
+  }
+}
+
 const fetchPosts = async () => {
   const GetPostMessage = {
     user_id: globalStore.userId
     //tags:
   }
   try {
-    const response = await GetPostsApi(currentPage.value, nullTMP.value, nullTMP.value, nullTMP.value, nullTMP.value);
+    const response = await GetPostsApi(currentPage.value, globalStore.userId, nullTMP.value, nullTMP.value, nullTMP.value);
     //const response = await GetPostsByStudentIdApi(currentPage.value, globalStore.userId);
     posts.value = response.data.data.list
     total.value = (response.data.data.totalPages) * 10,
-      errorMessage.value = null;
-    const ifWarning = ref(false);
+      console.log(posts.value.length)
+    errorMessage.value = null;
+    //const ifWarning = ref(false);
     const warningpage = ref("")
-    for (let i = 0; i < posts.length; i++) {
-      const item = posts[i];
+
+    /*for (let i = 0; i < posts.value.length; i++) {
+      const item = posts[i].value;
+      console.log(i);
+      //console.log(item);
+      console.log(item.feedback_status);
+      console.log(item.is_confirmed);
+
       // 检查条件：feedback_status为4且is_confirmed为false
       if (item.feedback_status === 4 && item.is_confirmed === false) {
         ifWarning.value = true; // 找到符合条件的项，立即返回true
@@ -240,10 +267,10 @@ const fetchPosts = async () => {
         console.log(item.is_confirmed);
         warningpage.value = item.feedback_id;
       }
-    }
-    //const ifWarning = posts.some(item => { return item.warning_confirmed == false && item.feedback_status == 4 });
-    if (ifWarning.value == true) {
-      alert(`请您在发送反馈时确保内容的有效性和准确性，感谢您的理解和配合，如有异议，请重新反馈，请您点击未确认的垃圾帖子(${warningpage})进行确认`);
+    }*/
+    const ifWarning = posts.value.some(item => { return item.is_confirmed == false && item.feedback_status == 4 });
+    if (ifWarning) {
+      alert(`请您在发送反馈时确保内容的有效性和准确性，感谢您的理解和配合，如有异议，请重新反馈，请您点击未确认的垃圾帖子(进行确认`);
     }
     ElMessage.success("加载完成!")
   } catch (err) {
