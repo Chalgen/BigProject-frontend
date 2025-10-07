@@ -76,11 +76,12 @@
       <div>
         <div v-if="showPost.image_urls.length == 0">暂无附件</div>
         <div v-else>
-          <img :src=tmptmp class="profile-photo">
+          <!--<img :src=tmptmp class="profile-photo">-->
+          
 
 
           <div v-for="i in showPost.image_urls">
-            <img :src=i class="profile-photo">
+            <img :src='"http://47.99.206.67"+i' class="profile-photo">
           </div>
         </div>
       </div>
@@ -627,6 +628,11 @@ function sentComment() {
   color: #fff;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(66, 185, 131, 0.2);
+}
+
+.profile-photo{
+  max-width: 300px;
+  max-height: 300px;
 }
 
 .content-background {
