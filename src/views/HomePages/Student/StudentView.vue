@@ -19,7 +19,7 @@
         <button @click="showModal = false" class="confirm-btn">确定</button>
       </div>
     </div>
-
+<!---->
     <div class="items">
       <div v-for="item in posts" :key="item.feedback_id" class="item"
         :style="{ color: getColor(item.feedback_status), backgroundColor: getBackgroundColor(item.feedback_status) }">
@@ -72,8 +72,11 @@
       </div>
     </el-dialog>
     <el-dialog title="附件展示" v-model="viewAttach" :width="'70%'" :z-index='4000' :align-center="true">
-      <button @click="out()">查看</button>
+      
       <div>
+        <button @click="out(tmptmp)">查看</button>
+        <div><img :src=tmptmp class="profile-photo"></div>
+        
         <div v-if="showPost.image_urls.length == 0">暂无附件</div>
         <div v-else>
           <img :src=tmptmp class="profile-photo">
@@ -118,6 +121,8 @@
 </template>
 
 <script setup>
+//c/Users/34403/Desktop/大作业成品
+
 const tmptmp = ref('http://47.99.206.67/uploads/a1177a41-1ef1-46ba-a4f7-d5a8ca2d98c0.JPG')
 function out() {
   console.log(showPost.value.image_urls)
@@ -138,6 +143,7 @@ import request from '@/utils/request'
 const { proxy } = getCurrentInstance()
 const globalStore = useGlobalStore()
 
+const tmptmp=ref('/api/file/images/cb6dbe8a-ee80-4c02-aa20-e7f1612e2af8.png')
 const openModal = ref(false)
 const showModal = ref(false)
 const openComment = ref(false)

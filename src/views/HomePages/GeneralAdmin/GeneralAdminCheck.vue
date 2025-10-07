@@ -96,6 +96,8 @@
       <button @click="postPopup = false" class="close-success-popup">确认</button>
     </div>
   </div>
+  <el-pagination v-model:current-page="currentPage" :total="total" background layout="prev, pager, next"
+    @current-change="fetchPosts" size="large" />
 </template>
 
 <script setup>
@@ -117,6 +119,7 @@ const showModal = ref(false)
 const openComment = ref(false)
 const viewAttach = ref(false)
 const sentAttach = ref(false)
+
 
 const total = ref(0);
 //const posts = ref([]);

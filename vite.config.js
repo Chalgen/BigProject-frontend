@@ -22,7 +22,26 @@ export default defineConfig({
     }),*/
   ],
 
-  
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://47.99.206.67',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    }
+  },
+  proxy: {
+    '/api/file/uploads': {
+      target: 'http://47.99.206.67',  // 图片实际地址
+      changeOrigin: true,
+      pathRewrite: {
+        '^/api/file/uploads': ''  // 去掉代理路径前缀
+      }
+    }
+  },
+
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
